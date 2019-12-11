@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.so
+*.swp
+build/
+data/linemod
+data/occlusion_linemod
+data/temp
+saved_weights
+output
+*.sh

@@ -63,6 +63,7 @@ If you use a different shell other than bash and fish, prepend "lib/regressor" t
 You can download our pre-trained weights below:
 * Linemod:
 * Occlusion Linemod: [ape](https://drive.google.com/open?id=1mSMJ_PuFJZ9heOG2NbR18pEYmXCuiNm5)
+
 We have configured random seeds in src/train\_core.py and expect you to re-produce identical weights by running our training script. Our training uses two graphics cards with a batch size of 12.
 
 After you download the pre-trained weights, unzip them somewhere and configure `--load_dir` in src/train\_core.py to the unzipped weights (e.g. saved\_weights/occlusion\_linemod/ape/checkpoints/0.02/499).

@@ -57,4 +57,14 @@ LD_LIBRARY_PATH=lib/regressor:$LD_LIBRARY_PATH python src/train_core.py
 # on fish shell
 env LD_LIBRARY_PATH="lib/regressor:$LD_LIBRARY_PATH" python src/train_core.py
 ```
-If you use a different shell other than bash and fish, prepend "lib/regressor" to LD_LIBRARY_PATH and run `python src/train_core.py`.
+If you use a different shell other than bash and fish, prepend "lib/regressor" to LD\_LIBRARY\_PATH and run `python src/train_core.py`.
+
+## Pre-trained weights
+You can download our pre-trained weights below:
+* Linemod:
+* Occlusion Linemod: [ape](https://drive.google.com/open?id=1mSMJ_PuFJZ9heOG2NbR18pEYmXCuiNm5)
+We have configured random seeds in src/train\_core.py and expect you to re-produce identical weights by running our training script. Our training uses two graphics cards with a batch size of 12.
+
+After you download the pre-trained weights, unzip them somewhere and configure `--load_dir` in src/train\_core.py to the unzipped weights (e.g. saved\_weights/occlusion\_linemod/ape/checkpoints/0.02/499).
+
+Running `src/train_core.py` now will save both ground truth and predicted poses to a directory called `output`.

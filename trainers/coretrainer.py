@@ -385,7 +385,7 @@ class CoreTrainer(object):
             # object is not detected
             R = np.eye(3, dtype=np.float32)
             t = np.zeros((3, 1), dtype=np.float32)
-            return R, t
+            return R, t, R, t
         # load intermediate representations to regressor
         n_keypts = self.args.num_keypoints
         n_edges = n_keypts * (n_keypts - 1) // 2
@@ -473,19 +473,21 @@ class CoreTrainer(object):
         regressor.get_pose(predictions, get_2d_ctypes(pose_final))
         R = pose_final[1:].transpose()
         t = pose_final[0].reshape((3, 1))
-        return R, t
+        return R, t, pose_init[1:].transpose(), pose_init[0].reshape((3, 1))
 
     def generate_data(self):
         self.model.eval()
         camera_intrinsic = self.test_loader.dataset.dataset.camera_intrinsic
-        n_examples = len(self.test_loader.dataset.dataset)
+        n_examples = len(self.test_loader.dataset)
         record = {
                 'object_name': [],
                 'local_idx': [],
                 'R_gt': np.zeros((n_examples, 3, 3), dtype=np.float32),
                 't_gt': np.zeros((n_examples, 3, 1), dtype=np.float32),
                 'R_pred': np.zeros((n_examples, 3, 3), dtype=np.float32),
-                't_pred': np.zeros((n_examples, 3, 1), dtype=np.float32)
+                't_pred': np.zeros((n_examples, 3, 1), dtype=np.float32),
+                'R_init': np.zeros((n_examples, 3, 3), dtype=np.float32),
+                't_init': np.zeros((n_examples, 3, 1), dtype=np.float32)
                 }
         K = np.matrix([[camera_intrinsic['fu'], 0, camera_intrinsic['uc']],
                        [0, camera_intrinsic['fv'], camera_intrinsic['vc']],
@@ -518,23 +520,25 @@ class CoreTrainer(object):
                 pts2d_pred_loc, pts2d_pred_var = self.vote_keypoints(pts2d_map_pred, mask_pred)
                 mask_pred = mask_pred.detach().cpu().numpy()
                 for i in range(batch['image'].shape[0]):
-                    R_pred, t_pred = self.regress_pose(regressor,
-                                                       predictions,
-                                                       K,
-                                                       K_inv,
-                                                       batch['pts3d'][i].numpy(),
-                                                       pts2d_pred_loc[i].detach().cpu().numpy(),
-                                                       pts2d_pred_var[i].detach().cpu().numpy(),
-                                                       graph_pred[i].detach().cpu().numpy(),
-                                                       sym_cor_pred[i].detach().cpu().numpy(),
-                                                       mask_pred[i][0],
-                                                       batch['normal'][i].numpy())
+                    R_pred, t_pred, R_init, t_init = self.regress_pose(regressor,
+                                                                       predictions,
+                                                                       K,
+                                                                       K_inv,
+                                                                       batch['pts3d'][i].numpy(),
+                                                                       pts2d_pred_loc[i].detach().cpu().numpy(),
+                                                                       pts2d_pred_var[i].detach().cpu().numpy(),
+                                                                       graph_pred[i].detach().cpu().numpy(),
+                                                                       sym_cor_pred[i].detach().cpu().numpy(),
+                                                                       mask_pred[i][0],
+                                                                       batch['normal'][i].numpy())
                     record['R_pred'][base_idx + i] = R_pred
                     record['t_pred'][base_idx + i] = t_pred
+                    record['R_init'][base_idx + i] = R_init
+                    record['t_init'][base_idx + i] = t_init
             os.makedirs('output/{}'.format(self.args.dataset), exist_ok=True)
             np.save('output/{}/record_{}.npy'.format(self.args.dataset, self.args.object_name), record)
             print('saved')
-        regressor.detele_container(predictions)
+        regressor.delete_container(predictions)
 
     def save_model(self, epoch):
         ckpt_dir = os.path.join(self.args.save_dir, 'checkpoints')

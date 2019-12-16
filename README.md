@@ -81,7 +81,7 @@ You can download our pre-trained weights below:
 [duck](https://drive.google.com/open?id=1rxBefssfd2X9KZ9S_3KNo0dDjiWinY_z),
 [eggbox](https://drive.google.com/open?id=1gyF-cBVB4z3M8LvqkkxVuSWa9BASeWDP),
 [glue](https://drive.google.com/open?id=1e4pBrsFgGe7XesRBVDGw-G0c4sy1zeCq),
-[holepuncher](https://drive.google.com/open?id=1Jfghicq6U4Dv5Q-HgySMCkSiNvGYUzLG),
+[holepuncher](https://drive.google.com/open?id=1Jfghicq6U4Dv5Q-HgySMCkSiNvGYUzLG)
 
 We have configured random seeds in src/train\_core.py and expect you to re-produce identical weights by running our training script. Our training uses two graphics cards with a batch size of 12.
 

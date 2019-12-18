@@ -208,8 +208,8 @@ void PoseRegression::GenerateDataMatrix(const HybridPredictionContainer& predict
     W_sym(symId, symId) = weight_symcorres[symId];
   }  // add J_kpts into Datamatrix
   M_sym = J_sym * W_sym * J_sym.transpose();
-  for (unsigned row_id = 0; row_id < 12; ++row_id) {
-    for (unsigned com_id = 0; com_id < 12; ++com_id) {
+  for (unsigned row_id = 0; row_id < 9; ++row_id) {
+    for (unsigned com_id = 0; com_id < 9; ++com_id) {
       (*data_matrix)(row_id, com_id) += M_sym(row_id, com_id) * para.gamma_sym;      
     }
   } 

@@ -214,6 +214,7 @@ extern "C" {
     AffineXform3d pose = *(predictions->GetRigidPose());
     PoseRegression pr;
     PoseRegressionPara pr_para;
+    pr.InitializePose(*predictions, pr_para, &pose);
     pr.RefinePose(*predictions, pr_para, &pose);
     AffineXform3d* p = predictions->GetRigidPose();
     for (int i = 0; i < 4; i++) {

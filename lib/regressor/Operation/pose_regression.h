@@ -22,6 +22,9 @@ struct PoseRegressionPara {
     alpha_kpts = 2e-3;
     alpha_edge = 2e-3;
     alpha_sym = 5e-2;
+    gamma_kpts = 1;
+    gamma_edge = 1;
+    gamma_sym = 0.1;
   }
   ~PoseRegressionPara() {
   }
@@ -36,6 +39,9 @@ struct PoseRegressionPara {
   double alpha_kpts;
   double alpha_edge;
   double alpha_sym;
+  double gamma_kpts;
+  double gamma_edge;
+  double gamma_sym;
 };
 
 class PoseRegression {
@@ -52,7 +58,7 @@ class PoseRegression {
     const PoseRegressionPara &para,
     AffineXform3d* rigid_pose);
  private:
-  // The following functions are used for pose initialization
+  // The following functions are used for pose initialization 
   void GenerateDataMatrix(const HybridPredictionContainer& predictions,
     const vector<double> &weight_kpts,
     const vector<double> &weight_edges,
@@ -60,8 +66,10 @@ class PoseRegression {
     const PoseRegressionPara& para,
     Matrix12d* data_matrix);
   // Leading eigen-space computation
-  void LeadingEigenSpace(const Matrix12d& data_matrix, const unsigned& numEigs,
-    vector<Vector12d>* eigenVectors);
+  void LeadingEigenSpace(Matrix12d& data_matrix, const unsigned& numEigs,
+    const HybridPredictionContainer& predictions, vector<Vector12d>* eigenVectors, 
+    AffineXform3d* rigid_pose);
+
   
   // The following functions are used for pose refinement
   void Reweighting(const HybridPredictionContainer& predictions,

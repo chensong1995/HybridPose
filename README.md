@@ -61,11 +61,36 @@ If you use a different shell other than bash and fish, prepend "lib/regressor" t
 
 ## Pre-trained weights
 You can download our pre-trained weights below:
-* Linemod:
-* Occlusion Linemod: [ape](https://drive.google.com/open?id=1mSMJ_PuFJZ9heOG2NbR18pEYmXCuiNm5)
+* Linemod: [ape](https://drive.google.com/open?id=11pNOt_NQuuWXqFeFOLH6zxjroj0dY40Z),
+[benchviseblue](https://drive.google.com/open?id=1jzMA7StZ0Xv5-6NdCOn2c0HdBTr0xP_n),
+[cam](https://drive.google.com/open?id=1imtCRqdDKBk7aqreD4AfsG0y3RrJhRiT),
+[can](https://drive.google.com/open?id=17hw73k6Vw-6cCQRh-Gfsrvdsz7ACbzzZ),
+[cat](https://drive.google.com/open?id=1pM6M4gT48zKkk87YIe9OsONsSBjaZMst),
+[driller](https://drive.google.com/open?id=1ouF4Unuou6Gz6K509iynJAKKnX_n15Q3),
+[duck](https://drive.google.com/open?id=1waStm2JijN_KvbClmbQGDaWipQtUNqJ3),
+[eggbox](https://drive.google.com/open?id=16AppoJI1nQuTHlABNiims41d1Kdr14Nz),
+[glue](https://drive.google.com/open?id=1MKLWHTwl-bc7x7Dk8FS4OitfeTglGvpT),
+[holepuncher](https://drive.google.com/open?id=1CmozZxWc9i85V9lpJr6VX0KiM0AgycwR),
+[iron](https://drive.google.com/open?id=1wTAkp-6wmvGsIDf46MnqgguUsZU5RTZX),
+[lamp](https://drive.google.com/open?id=11AOf0x6Xoe23wzm3e_q-Z87Z1PqeECLy),
+[phone](https://drive.google.com/open?id=1bgcWM9bg5_XsaLA5ukmzfHB4rXEYhWBq)
+* Occlusion Linemod: [ape](https://drive.google.com/open?id=1mSMJ_PuFJZ9heOG2NbR18pEYmXCuiNm5),
+[can](https://drive.google.com/open?id=1hEJifEoSuDpLZvzSblYujHZgHsFTq1pK),
+[cat](https://drive.google.com/open?id=1ubfXvdC5OncOXtKkVZFpNxV51h9pen6z),
+[driller](https://drive.google.com/open?id=1yhQgriFd1GLIDiulRPkETH-2prLtmUqN),
+[duck](https://drive.google.com/open?id=1rxBefssfd2X9KZ9S_3KNo0dDjiWinY_z),
+[eggbox](https://drive.google.com/open?id=1gyF-cBVB4z3M8LvqkkxVuSWa9BASeWDP),
+[glue](https://drive.google.com/open?id=1e4pBrsFgGe7XesRBVDGw-G0c4sy1zeCq),
+[holepuncher](https://drive.google.com/open?id=1Jfghicq6U4Dv5Q-HgySMCkSiNvGYUzLG)
 
 We have configured random seeds in src/train\_core.py and expect you to re-produce identical weights by running our training script. Our training uses two graphics cards with a batch size of 12.
 
-After you download the pre-trained weights, unzip them somewhere and configure `--load_dir` in src/train\_core.py to the unzipped weights (e.g. saved\_weights/occlusion\_linemod/ape/checkpoints/0.02/499).
+After you download the pre-trained weights, unzip them somewhere and configure `--load_dir` in `src/train_core.py` to the unzipped weights (e.g. `saved_weights/occlusion_linemod/ape/checkpoints/0.02/499`).
 
 Running `src/train_core.py` now will save both ground truth and predicted poses to a directory called `output`.
+
+## Evaluation
+To evaluate ADD(-S) accuracy of predicted poses, please set the arguments in `src/evaluate.py` and run
+```
+python src/evaluate.py
+```

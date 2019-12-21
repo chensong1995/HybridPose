@@ -10,7 +10,7 @@ from lib.utils import save_session, AverageMeter
 from lib.ransac_voting_gpu_layer.ransac_voting_gpu import ransac_voting_layer_v3
 from lib.ransac_voting_gpu_layer.ransac_voting_gpu import estimate_voting_distribution_with_mean
 from lib.regressor.regressor import load_wrapper, get_2d_ctypes
-
+from src.evaluate import read_diameter
 import pdb
 
 cuda = torch.cuda.is_available()
@@ -380,7 +380,7 @@ class CoreTrainer(object):
         symmetry_weight /= np.max(symmetry_weight)
         return qs1_cross_qs2, symmetry_weight
 
-    def regress_pose(self, regressor, predictions, K, K_inv, pts3d, pts2d_pred_loc, pts2d_pred_var, graph_pred, sym_cor_pred, mask_pred, normal_gt):
+    def regress_pose(self, regressor, predictions, pr_para, K, K_inv, pts3d, pts2d_pred_loc, pts2d_pred_var, graph_pred, sym_cor_pred, mask_pred, normal_gt):
         if mask_pred.sum() == 0:
             # object is not detected
             R = np.eye(3, dtype=np.float32)
@@ -453,7 +453,7 @@ class CoreTrainer(object):
                                       symmetry_weight.ctypes,
                                       n_symmetry)
         # TODO: remove this after initialization module is completed by Jiaru
-        # set initial pose
+        # set initial pose        
         pts2d_ = np.float64(pts2d_pred_loc)
         pts3d_ = np.float64(pts3d)
         dist_coeffs = np.zeros((5, 1))
@@ -466,14 +466,106 @@ class CoreTrainer(object):
         pose_init = np.zeros((4, 3), dtype=np.float32)
         pose_init[0] = tvec.transpose()[0]
         pose_init[1:] = r.transpose()
-        regressor.set_pose(predictions, get_2d_ctypes(pose_init))
-        # regress
-        predictions = regressor.regress(predictions)
+        regressor.set_pose(predictions, get_2d_ctypes(pose_init))        
+        # regress        
+        predictions = regressor.regress(predictions, pr_para)
         pose_final = np.zeros((4, 3), dtype=np.float32)
         regressor.get_pose(predictions, get_2d_ctypes(pose_final))
         R = pose_final[1:].transpose()
         t = pose_final[0].reshape((3, 1))
         return R, t, pose_init[1:].transpose(), pose_init[0].reshape((3, 1))
+
+    def search_para(self, regressor, predictions_para, poses_para, K, K_inv, normal_gt, diameter, para_data):
+        para_id = 0
+        for data_id in range(len(para_data['pts3d'])):
+            if para_data['mask_pred'][data_id].sum() == 0:
+                # object is not detected
+                continue
+            # load intermediate representations to regressor            
+            predictions = regressor.get_prediction_container(predictions_para, para_id)            
+            n_keypts = self.args.num_keypoints
+            n_edges = n_keypts * (n_keypts - 1) // 2
+            # point3D_gt
+            pts3d = para_data['pts3d'][data_id]                    
+            regressor.set_point3D_gt(predictions, get_2d_ctypes(pts3d), n_keypts)            
+            # point2D_pred
+            pts2d_pred_loc = para_data['pts2d_pred_loc'][data_id]
+            point2D_pred = np.matrix(np.ones((3, n_keypts), dtype=np.float32))
+            point2D_pred[:2] = pts2d_pred_loc.transpose()
+            point2D_pred = np.array((K_inv * point2D_pred)[:2]).transpose()
+            regressor.set_point2D_pred(predictions,
+                                       get_2d_ctypes(point2D_pred),
+                                       n_keypts)
+            # point_inv_half_var
+            point_inv_half_var = np.zeros((n_keypts, 2, 2), dtype=np.float32)
+            for i in range(n_keypts): # compute cov^{-1/2}
+                cov = np.matrix(para_data['pts2d_pred_var'][data_id][i])
+                cov = (cov + cov.transpose()) / 2 # ensure the covariance matrix is symmetric
+                v, u = np.linalg.eig(cov)
+                v = np.matrix(np.diag(1. / np.sqrt(v)))
+                point_inv_half_var[i] = u * v * u.transpose()
+            point_inv_half_var = point_inv_half_var.reshape((n_keypts, 4))
+            regressor.set_point_inv_half_var(predictions,
+                                             get_2d_ctypes(point_inv_half_var),
+                                             n_keypts)
+            # normal_gt
+            regressor.set_normal_gt(predictions, normal_gt.ctypes)
+            # vec_pred and edge_inv_half_var
+            graph_pred = para_data['graph_pred'][data_id]
+            mask_pred = para_data['mask_pred'][data_id]
+            graph_pred = graph_pred.reshape((n_edges, 2, graph_pred.shape[1], graph_pred.shape[2]))
+            vec_pred = np.zeros((n_edges, 2), dtype=np.float32)
+            edge_inv_half_var = np.zeros((n_edges, 2, 2), dtype=np.float32)
+            for i in range(n_edges):
+                xs = graph_pred[i, 0][mask_pred == 1.]
+                ys = graph_pred[i, 1][mask_pred == 1.]
+                vec_pred[i] = [xs.mean(), ys.mean()]
+                cov = np.cov(xs, ys)
+                cov = (cov + cov.transpose()) / 2 # ensure the covariance matrix is symmetric
+                v, u = np.linalg.eig(cov)
+                v = np.matrix(np.diag(1. / np.sqrt(v)))
+                edge_inv_half_var[i] = u * v * u.transpose()
+            vec_pred = np.array(K_inv[:2, :2] * np.matrix(vec_pred).transpose()).transpose()
+            edge_inv_half_var = edge_inv_half_var.reshape((n_edges, 4))
+            regressor.set_vec_pred(predictions,
+                                   get_2d_ctypes(vec_pred),
+                                   n_edges)
+            regressor.set_edge_inv_half_var(predictions,
+                                            get_2d_ctypes(edge_inv_half_var),
+                                            n_edges)
+            # qs1_cross_qs2 and symmetry weight
+            sym_cor_pred = para_data['sym_cor_pred'][data_id]
+            sym_cor_pred = self.flatten_sym_cor(sym_cor_pred, mask_pred)
+            qs1_cross_qs2_all = np.zeros((sym_cor_pred.shape[0], 3), dtype=np.float32)
+            for i in range(sym_cor_pred.shape[0]):
+                qs1 = np.ones((3,), dtype=np.float32)
+                qs2 = np.ones((3,), dtype=np.float32)
+                qs1[:2] = sym_cor_pred[i][0]
+                qs2[:2] = sym_cor_pred[i][1]
+                qs1 = np.array(K_inv * np.matrix(qs1).transpose()).transpose()[0]
+                qs2 = np.array(K_inv * np.matrix(qs2).transpose()).transpose()[0]
+                qs1_cross_qs2_all[i] = np.cross(qs1, qs2)
+            qs1_cross_qs2_filtered, symmetry_weight = self.filter_symmetry(qs1_cross_qs2_all)
+            n_symmetry = qs1_cross_qs2_filtered.shape[0]
+            regressor.set_qs1_cross_qs2(predictions,
+                                        get_2d_ctypes(qs1_cross_qs2_filtered),
+                                        n_symmetry)
+            regressor.set_symmetry_weight(predictions,
+                                          symmetry_weight.ctypes,
+                                          n_symmetry)
+            
+            pose_gt = np.zeros((4, 3), dtype=np.float32)
+            tvec = para_data['t_gt'][data_id]
+            r = para_data['R_gt'][data_id]
+            pose_gt[0] = tvec.transpose()[0]
+            pose_gt[1:] = r.transpose()            
+            regressor.set_pose_gt(poses_para, para_id, get_2d_ctypes(pose_gt))
+            para_id += 1
+
+        # search parameter
+        # para_id is datasize for parameter search        
+        pr_para = regressor.search(predictions_para, poses_para, para_id, diameter)
+        return pr_para
 
     def generate_data(self):
         self.model.eval()
@@ -488,14 +580,26 @@ class CoreTrainer(object):
                 't_pred': np.zeros((n_examples, 3, 1), dtype=np.float32),
                 'R_init': np.zeros((n_examples, 3, 3), dtype=np.float32),
                 't_init': np.zeros((n_examples, 3, 1), dtype=np.float32)
-                }
+                }  
+        para_data = {
+                    'pts3d' : [],
+                    'pts2d_pred_loc' : [],
+                    'pts2d_pred_var' : [],
+                    'graph_pred' : [],
+                    'sym_cor_pred' : [],
+                    'mask_pred' : [],
+                    'R_gt' : [],
+                    't_gt' : []
+                    }
         K = np.matrix([[camera_intrinsic['fu'], 0, camera_intrinsic['uc']],
                        [0, camera_intrinsic['fv'], camera_intrinsic['vc']],
                        [0, 0, 1]], dtype=np.float32)
         K_inv = np.linalg.inv(K)
         regressor = load_wrapper()
-        predictions = regressor.new_container()
-        with torch.no_grad():
+        predictions = regressor.new_container() # pose regression
+        predictions_para = regressor.new_container_para() # search parameter for pose regression
+        poses_para =regressor.new_container_pose()
+        with torch.no_grad():            
             for i_batch, batch in enumerate(self.test_loader):
                 base_idx = self.args.batch_size * i_batch
                 # save ground truth information
@@ -518,10 +622,29 @@ class CoreTrainer(object):
                 mask_pred[mask_pred > 0.5] = 1.
                 mask_pred[mask_pred <= 0.5] = 0.
                 pts2d_pred_loc, pts2d_pred_var = self.vote_keypoints(pts2d_map_pred, mask_pred)
-                mask_pred = mask_pred.detach().cpu().numpy()
+                mask_pred = mask_pred.detach().cpu().numpy()     
                 for i in range(batch['image'].shape[0]):
+                    if (base_idx + i) < 20:
+                        # save data for parameter search                    
+                        para_data['pts3d'].append(batch['pts3d'][i].numpy())
+                        para_data['pts2d_pred_loc'].append(pts2d_pred_loc[i].detach().cpu().numpy())
+                        para_data['pts2d_pred_var'].append(pts2d_pred_var[i].detach().cpu().numpy())
+                        para_data['graph_pred'].append(graph_pred[i].detach().cpu().numpy())
+                        para_data['sym_cor_pred'].append(sym_cor_pred[i].detach().cpu().numpy())
+                        para_data['mask_pred'].append(mask_pred[i][0]) 
+                        para_data['R_gt'].append(R[i])
+                        para_data['t_gt'].append(t[i])
+                        continue
+                    elif (base_idx + i) == 20:
+                        # calculate parameters for pose initialization and pose refinement
+                        
+                        pr_para = self.search_para(regressor, predictions_para, poses_para, K, K_inv,
+                                                   batch['normal'][i].numpy(), read_diameter(self.args.object_name), para_data)
+                        
+                        # do pose regression then
                     R_pred, t_pred, R_init, t_init = self.regress_pose(regressor,
                                                                        predictions,
+                                                                       pr_para,
                                                                        K,
                                                                        K_inv,
                                                                        batch['pts3d'][i].numpy(),
@@ -538,7 +661,7 @@ class CoreTrainer(object):
             os.makedirs('output/{}'.format(self.args.dataset), exist_ok=True)
             np.save('output/{}/record_{}.npy'.format(self.args.dataset, self.args.object_name), record)
             print('saved')
-        regressor.delete_container(predictions)
+        regressor.delete_container(predictions, predictions_para, poses_para, pr_para)
 
     def save_model(self, epoch):
         ckpt_dir = os.path.join(self.args.save_dir, 'checkpoints')

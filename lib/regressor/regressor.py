@@ -15,9 +15,7 @@ def load_wrapper():
     # https://stackoverflow.com/questions/22425921/pass-a-2d-numpy-array-to-c-using-ctypes
     c_2darr_p = ndpointer(dtype=np.uintp, ndim=1, flags='C')
     # new_container()
-    regressor.new_container.restype = c_void_p
-    # delete_container()
-    regressor.delete_container.argtypes = [c_void_p]
+    regressor.new_container.restype = c_void_p    
     # set_pose()
     regressor.set_pose.argtypes = [c_void_p, c_2darr_p]
     # get_pose()
@@ -53,10 +51,27 @@ def load_wrapper():
     # get_symmetry_weight()
     regressor.get_symmetry_weight.argtypes = [c_void_p, c_void_p, c_int]
     # set_normal_gt()
-    regressor.set_normal_gt.argtypes = [c_void_p, c_void_p]
+    regressor.set_normal_gt.argtypes = [c_void_p, c_void_p]      
     # regress()
-    regressor.regress.argtypes = [c_void_p]
-    regressor.regress.restype = c_void_p
+    regressor.regress.argtypes = [c_void_p, c_void_p]
+    regressor.regress.restype = c_void_p  
+
+    ## search parameter
+    regressor.new_container_para.restype = c_void_p
+    regressor.new_container_pose.restype = c_void_p
+    # get_prediction_container()
+    regressor.get_prediction_container.argtypes = [c_void_p, c_int]
+    regressor.get_prediction_container.restype = c_void_p 
+    # set_pose_gt()
+    regressor.set_pose_gt.argtypes = [c_void_p, c_int, c_2darr_p]
+    # search()
+    regressor.search.argtypes = [c_void_p, c_void_p, c_int, c_double]
+    regressor.search.restype = c_void_p
+    # delete_container()
+    regressor.delete_container.argtypes = [c_void_p, c_void_p, c_void_p, c_void_p]
+
+
+    
     return regressor
 
 def test():

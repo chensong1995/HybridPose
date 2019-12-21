@@ -1,4 +1,5 @@
 #include "pose_regression.h"
+#include "pose_regression_parameter_search.h"
 
 extern "C" {
   void set_pose(HybridPredictionContainer* container, float** pose) {
@@ -9,6 +10,15 @@ extern "C" {
       }
     }
   }
+
+  void set_pose_gt(vector<AffineXform3d>* pose_container, int pose_id, float** pose) {
+    for (int i = 0; i < 4; i++) {
+      for (int j = 0; j < 3; j++) {
+        ((*pose_container)[pose_id])[i][j] = pose[i][j];
+      }
+    }
+  }
+
 
   void get_pose(HybridPredictionContainer* container, float** pose) {
     AffineXform3d* p = container->GetRigidPose();
@@ -210,6 +220,7 @@ extern "C" {
     container->SetReflectionPlaneNormal(normal);
   }
 
+  /*
   HybridPredictionContainer* regress(HybridPredictionContainer* predictions) {
     AffineXform3d pose = *(predictions->GetRigidPose());
     PoseRegression pr;
@@ -224,6 +235,43 @@ extern "C" {
     }
     return predictions;
   }
+  */
+
+  HybridPredictionContainer* regress(HybridPredictionContainer* predictions, PRRefinePara* para) {
+    AffineXform3d pose = *(predictions->GetRigidPose());
+    PoseRegression pr;
+    PoseRegressionPara pr_para;
+
+    // set parameters for pose refine ?? override initial value??
+    pr_para.beta_edge = para->beta_edge;
+    pr_para.beta_sym = para->beta_sym;
+    pr_para.alpha_kpts = para->alpha_kpts;
+    pr_para.alpha_edge = para->alpha_edge;
+    pr_para.alpha_sym = para->alpha_sym;
+
+    //pr.InitializePose(*predictions, pr_para, &pose);
+    pr.RefinePose(*predictions, pr_para, &pose);
+    AffineXform3d* p = predictions->GetRigidPose();
+    for (int i = 0; i < 4; i++) {
+      for (int j = 0; j < 3; j++) {
+        (*p)[i][j] = pose[i][j];
+      }
+    }
+    return predictions;
+  }
+
+  PRRefinePara* search(vector<HybridPredictionContainer>* predictions_para, 
+                       vector<AffineXform3d>* poses_gt, int data_size, double diameter) {
+
+    predictions_para->resize(data_size);
+    poses_gt->resize(data_size);    
+    PoseRegressionParameterSearch pr_ps;
+    ParameterSearchConfig ps_config;    
+    ps_config.lambda_trans = 4. / (diameter * diameter);
+    PRRefinePara* pr_para = new PRRefinePara();
+    pr_ps.Refinement(*predictions_para, *poses_gt, (const ParameterSearchConfig) ps_config, pr_para);
+    return pr_para;
+  }
 
   HybridPredictionContainer* new_container() {
     HybridPredictionContainer* hpc = new HybridPredictionContainer();
@@ -234,8 +282,76 @@ extern "C" {
     return hpc;
   }
 
-  void delete_container(HybridPredictionContainer* container) {
-    delete container;
+
+  // parameter search
+  vector<HybridPredictionContainer>* new_container_para() {
+    // I don't know the size until I finished, delete when finished
+    vector<HybridPredictionContainer>* hpc_para = new vector<HybridPredictionContainer>();   
+    (*hpc_para).resize(20);    
+
+    int start_id[] = {2, 3, 4, 5, 6, 7, 8, 3, 4, 5, 6, 7, 8, 4, 5, 6, 7, 8, 5, 6, 7, 8, 6, 7, 8, 7, 8, 8};
+    int   end_id[] = {1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 6, 6, 7};        
+    for (unsigned id = 0; id < (*hpc_para).size(); ++id)   
+      set_edge_ids(&((*hpc_para)[id]), start_id, end_id, 28);       
+    return hpc_para;
   }
 
+  HybridPredictionContainer* get_prediction_container(vector<HybridPredictionContainer>* predictions_para,
+                                                      int container_id) {
+    HybridPredictionContainer *predictions;
+    predictions = &((*predictions_para)[container_id]);
+    return predictions;
+  }
+
+  vector<AffineXform3d>* new_container_pose() {    
+    vector<AffineXform3d>* poses = new vector<AffineXform3d>();   
+    (*poses).resize(20);
+    return poses;
+  }
+
+
+
+  void delete_container(HybridPredictionContainer* container,
+                        vector<HybridPredictionContainer>* c2,
+                        vector<AffineXform3d>* c3, 
+                        PRRefinePara* c4) { 
+    delete container;
+    delete c2;
+    delete c3;
+    delete c4;
+  }
+
+
+
 }
+
+
+/*Question: fun(XX* a)
+vector<HybridPredictionContainer>* predictions_para;
+vector<AffineXform3d>* poses_gt;
+
+PoseRegressionParameterSearch pr_ps;
+ pr_ps.Refinement(*predictions_para, *poses_gt, ps_config, &pr_para);  // XX* cannot XX&
+
+
+void PoseRegressionParameterSearch::Refinement(
+  const vector<HybridPredictionContainer>& training_data,
+  const vector<AffineXform3d>& label_data,
+  const ParameterSearchConfig& para_config,
+  PRRefinePara* para)
+
+
+
+but the following works:
+
+PoseRegressionParameterSearch pr_ps;
+ pr_ps.Refinement(*predictions_para, *poses_gt, ps_config, &pr_para);  // XX* cannot XX&
+
+
+void PoseRegressionParameterSearch::Refinement(
+  vector<HybridPredictionContainer>& training_data,
+  vector<AffineXform3d>& label_data,
+  const ParameterSearchConfig& para_config,
+  PRRefinePara* para)
+
+  */

@@ -74,13 +74,20 @@ if __name__ == '__main__':
         compute_score = compute_adds_score
     else:
         compute_score = compute_add_score
+    
+    #jump data of validation set
+    num = 0
+    for t in record['t_pred']:
+        if np.sum(t) == 0:
+            num += 1
+    
     score_init = compute_score(pts3d,
                                diameter,
-                               (record['R_gt'], record['t_gt']),
-                               (record['R_init'], record['t_init']))
+                               (record['R_gt'][num:], record['t_gt'][num:]),
+                               (record['R_init'][num:], record['t_init'][num:]))
     print('ADD(-S) score of initial prediction is: {}'.format(score_init))
     score_pred = compute_score(pts3d,
                                diameter,
-                               (record['R_gt'], record['t_gt']),
-                               (record['R_pred'], record['t_pred']))
+                               (record['R_gt'][num:], record['t_gt'][num:]),
+                               (record['R_pred'][num:], record['t_pred'][num:]))
     print('ADD(-S) score of final prediction is: {}'.format(score_pred))

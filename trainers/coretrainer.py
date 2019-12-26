@@ -380,7 +380,7 @@ class CoreTrainer(object):
         symmetry_weight /= np.max(symmetry_weight)
         return qs1_cross_qs2, symmetry_weight
 
-    def regress_pose(self, regressor, predictions, pr_para, K, K_inv, pts3d, pts2d_pred_loc, pts2d_pred_var, graph_pred, sym_cor_pred, mask_pred, normal_gt):
+    def regress_pose(self, regressor, predictions, pr_para, pi_para, K, K_inv, pts3d, pts2d_pred_loc, pts2d_pred_var, graph_pred, sym_cor_pred, mask_pred, normal_gt):
         if mask_pred.sum() == 0:
             # object is not detected
             R = np.eye(3, dtype=np.float32)
@@ -468,7 +468,7 @@ class CoreTrainer(object):
         pose_init[1:] = r.transpose()
         regressor.set_pose(predictions, get_2d_ctypes(pose_init))        
         # regress        
-        predictions = regressor.regress(predictions, pr_para)
+        predictions = regressor.regress(predictions, pr_para, pi_para)
         pose_final = np.zeros((4, 3), dtype=np.float32)
         regressor.get_pose(predictions, get_2d_ctypes(pose_final))
         R = pose_final[1:].transpose()
@@ -564,8 +564,9 @@ class CoreTrainer(object):
 
         # search parameter
         # para_id is datasize for parameter search        
-        pr_para = regressor.search(predictions_para, poses_para, para_id, diameter)
-        return pr_para
+        pi_para = regressor.search_pose_initial(predictions_para, poses_para, para_id, diameter)
+        pr_para = regressor.search_pose_refine(predictions_para, poses_para, para_id, diameter)
+        return pr_para, pi_para
 
     def generate_data(self):
         self.model.eval()
@@ -598,7 +599,7 @@ class CoreTrainer(object):
         regressor = load_wrapper()
         predictions = regressor.new_container() # pose regression
         predictions_para = regressor.new_container_para() # search parameter for pose regression
-        poses_para =regressor.new_container_pose()
+        poses_para = regressor.new_container_pose()
         with torch.no_grad():            
             for i_batch, batch in enumerate(self.test_loader):
                 base_idx = self.args.batch_size * i_batch
@@ -638,13 +639,14 @@ class CoreTrainer(object):
                     elif (base_idx + i) == 20:
                         # calculate parameters for pose initialization and pose refinement
                         
-                        pr_para = self.search_para(regressor, predictions_para, poses_para, K, K_inv,
+                        pr_para, pi_para = self.search_para(regressor, predictions_para, poses_para, K, K_inv,
                                                    batch['normal'][i].numpy(), read_diameter(self.args.object_name), para_data)
                         
                         # do pose regression then
                     R_pred, t_pred, R_init, t_init = self.regress_pose(regressor,
                                                                        predictions,
                                                                        pr_para,
+                                                                       pi_para,
                                                                        K,
                                                                        K_inv,
                                                                        batch['pts3d'][i].numpy(),
@@ -661,7 +663,7 @@ class CoreTrainer(object):
             os.makedirs('output/{}'.format(self.args.dataset), exist_ok=True)
             np.save('output/{}/record_{}.npy'.format(self.args.dataset, self.args.object_name), record)
             print('saved')
-        regressor.delete_container(predictions, predictions_para, poses_para, pr_para)
+        regressor.delete_container(predictions, predictions_para, poses_para, pr_para, pi_para)
 
     def save_model(self, epoch):
         ckpt_dir = os.path.join(self.args.save_dir, 'checkpoints')

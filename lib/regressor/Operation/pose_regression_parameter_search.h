@@ -48,9 +48,14 @@ struct PRRefinePara {
 struct PRInitPara {
  public:
   PRInitPara() {
+    gamma_edge = 1;
+    gamma_sym = 0.1;
+
   }
   ~PRInitPara() {
-  }
+  }  
+  double gamma_edge;
+  double gamma_sym;
 };
 
 class PoseRegressionParameterSearch {
@@ -68,6 +73,6 @@ class PoseRegressionParameterSearch {
     const ParameterSearchConfig& para_config,
     PRInitPara* para);
  private:
-  bool Solve(const Matrix<double, Dynamic, Dynamic>& A, const VectorXd& b, VectorXd* x); //? const dynamic??
+  bool Solve(const Matrix<double, Dynamic, Dynamic>& A, const VectorXd& b, VectorXd* x);
 };
 #endif

@@ -220,37 +220,23 @@ extern "C" {
     container->SetReflectionPlaneNormal(normal);
   }
 
-  /*
-  HybridPredictionContainer* regress(HybridPredictionContainer* predictions) {
+  HybridPredictionContainer* regress(HybridPredictionContainer* predictions, 
+                                     PRRefinePara* pr_para, PRInitPara* pi_para) {
     AffineXform3d pose = *(predictions->GetRigidPose());
     PoseRegression pr;
-    PoseRegressionPara pr_para;
-    pr.InitializePose(*predictions, pr_para, &pose);
-    pr.RefinePose(*predictions, pr_para, &pose);
-    AffineXform3d* p = predictions->GetRigidPose();
-    for (int i = 0; i < 4; i++) {
-      for (int j = 0; j < 3; j++) {
-        (*p)[i][j] = pose[i][j];
-      }
-    }
-    return predictions;
-  }
-  */
+    PoseRegressionPara para;
+    // set search parameters for pose initial
+    para.gamma_edge = pi_para->gamma_edge;
+    para.gamma_sym = pi_para->gamma_sym;
+    // set searched parameters for pose refine
+    para.beta_edge = pr_para->beta_edge;
+    para.beta_sym = pr_para->beta_sym;
+    para.alpha_kpts = pr_para->alpha_kpts;
+    para.alpha_edge = pr_para->alpha_edge;
+    para.alpha_sym = pr_para->alpha_sym;
 
-  HybridPredictionContainer* regress(HybridPredictionContainer* predictions, PRRefinePara* para) {
-    AffineXform3d pose = *(predictions->GetRigidPose());
-    PoseRegression pr;
-    PoseRegressionPara pr_para;
-
-    // set parameters for pose refine ?? override initial value??
-    pr_para.beta_edge = para->beta_edge;
-    pr_para.beta_sym = para->beta_sym;
-    pr_para.alpha_kpts = para->alpha_kpts;
-    pr_para.alpha_edge = para->alpha_edge;
-    pr_para.alpha_sym = para->alpha_sym;
-
-    //pr.InitializePose(*predictions, pr_para, &pose);
-    pr.RefinePose(*predictions, pr_para, &pose);
+    pr.InitializePose(*predictions, para, &pose);
+    pr.RefinePose(*predictions, para, &pose);
     AffineXform3d* p = predictions->GetRigidPose();
     for (int i = 0; i < 4; i++) {
       for (int j = 0; j < 3; j++) {
@@ -260,7 +246,7 @@ extern "C" {
     return predictions;
   }
 
-  PRRefinePara* search(vector<HybridPredictionContainer>* predictions_para, 
+  PRRefinePara* search_pose_refine(vector<HybridPredictionContainer>* predictions_para, 
                        vector<AffineXform3d>* poses_gt, int data_size, double diameter) {
 
     predictions_para->resize(data_size);
@@ -272,6 +258,21 @@ extern "C" {
     pr_ps.Refinement(*predictions_para, *poses_gt, (const ParameterSearchConfig) ps_config, pr_para);
     return pr_para;
   }
+
+  PRInitPara* search_pose_initial(vector<HybridPredictionContainer>* predictions_para, 
+                       vector<AffineXform3d>* poses_gt, int data_size, double diameter) {
+
+    predictions_para->resize(data_size);
+    poses_gt->resize(data_size);    
+    PoseRegressionParameterSearch pr_ps;
+    ParameterSearchConfig ps_config;    
+    ps_config.lambda_trans = 4. / (diameter * diameter);
+    PRInitPara* pi_para = new PRInitPara();
+    pr_ps.Initialization(*predictions_para, *poses_gt, (const ParameterSearchConfig) ps_config, pi_para);
+    return pi_para;
+  }
+
+
 
   HybridPredictionContainer* new_container() {
     HybridPredictionContainer* hpc = new HybridPredictionContainer();
@@ -285,7 +286,6 @@ extern "C" {
 
   // parameter search
   vector<HybridPredictionContainer>* new_container_para() {
-    // I don't know the size until I finished, delete when finished
     vector<HybridPredictionContainer>* hpc_para = new vector<HybridPredictionContainer>();   
     (*hpc_para).resize(20);    
 
@@ -309,16 +309,16 @@ extern "C" {
     return poses;
   }
 
-
-
   void delete_container(HybridPredictionContainer* container,
                         vector<HybridPredictionContainer>* c2,
                         vector<AffineXform3d>* c3, 
-                        PRRefinePara* c4) { 
+                        PRRefinePara* c4, 
+                        PRInitPara* c5) { 
     delete container;
     delete c2;
     delete c3;
     delete c4;
+    delete c5;
   }
 
 

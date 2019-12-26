@@ -53,7 +53,7 @@ def load_wrapper():
     # set_normal_gt()
     regressor.set_normal_gt.argtypes = [c_void_p, c_void_p]      
     # regress()
-    regressor.regress.argtypes = [c_void_p, c_void_p]
+    regressor.regress.argtypes = [c_void_p, c_void_p, c_void_p]
     regressor.regress.restype = c_void_p  
 
     ## search parameter
@@ -64,13 +64,14 @@ def load_wrapper():
     regressor.get_prediction_container.restype = c_void_p 
     # set_pose_gt()
     regressor.set_pose_gt.argtypes = [c_void_p, c_int, c_2darr_p]
-    # search()
-    regressor.search.argtypes = [c_void_p, c_void_p, c_int, c_double]
-    regressor.search.restype = c_void_p
+    # search_pose_initial()
+    regressor.search_pose_initial.argtypes = [c_void_p, c_void_p, c_int, c_double]
+    regressor.search_pose_initial.restype = c_void_p
+    # search_pose_refine()
+    regressor.search_pose_refine.argtypes = [c_void_p, c_void_p, c_int, c_double]
+    regressor.search_pose_refine.restype = c_void_p
     # delete_container()
-    regressor.delete_container.argtypes = [c_void_p, c_void_p, c_void_p, c_void_p]
-
-
+    regressor.delete_container.argtypes = [c_void_p, c_void_p, c_void_p, c_void_p, c_void_p]
     
     return regressor
 

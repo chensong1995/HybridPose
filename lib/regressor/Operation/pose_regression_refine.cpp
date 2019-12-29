@@ -1,9 +1,9 @@
-﻿#include "pose_regression.h"
+#include "pose_regression.h"
 
 void PoseRegression::RefinePose(const HybridPredictionContainer& predictions,
   const PoseRegressionPara& para,
   AffineXform3d* rigid_pose) {
-  vector<double> weight_keypts, weight_edges, weight_symcorres;
+  vector<double> weight_keypts, weight_edges, weight_symcorres;  
   Reweighting(predictions, para, *rigid_pose,
     &weight_keypts, &weight_edges, &weight_symcorres);
 

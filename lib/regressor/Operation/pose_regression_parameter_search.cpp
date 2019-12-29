@@ -4,7 +4,8 @@
 #include <algorithm>
 
 float rand_val() {
-  return (rand() - 16384.f)*2.f/32769.f;
+  //return (rand() - 16384.f)*2.f/32769.f;
+  return (float) rand() / RAND_MAX;
 }
 
 void PoseRegressionParameterSearch::Refinement(
@@ -44,7 +45,7 @@ void PoseRegressionParameterSearch::Refinement(
     VectorXd temp(training_data.size());
     temp.fill(0.0);
     for (unsigned j = 0; j < training_data.size(); ++j) {
-      AffineXform3d pose = *training_data[j].GetRigidPose();
+      AffineXform3d pose = *training_data[j].GetRigidPose(); 
       pr.RefinePose(training_data[j], pr_para, &pose);
       AffineXform3d pose_gt = label_data[j];
       double loss = para_config.lambda_trans
@@ -122,11 +123,9 @@ void PoseRegressionParameterSearch::Refinement(
     VectorXd quad_coeffs(20);
     quad_coeffs.fill(0.0);
     Solve(matA, vecb, &quad_coeffs);
-    // Parse out the quadratic approximation
-    //DVectorD vecg(5);
+    // Parse out the quadratic approximation   
     VectorXd vecg(5);
     vecg.fill(0.0);
-    //DMatrixD matH(5,5);
     Matrix<double, Dynamic, Dynamic> matH(5, 5);
     matH.fill(0.0);
     for (int i = 0; i < 5; ++i) {
@@ -136,7 +135,6 @@ void PoseRegressionParameterSearch::Refinement(
     for (int j = 0; j < 5; ++j) {
       for (int k = j; k < 5; ++k) {
         if (j == k) {
-          //matH[j][j] = 2 * quad_coeffs[off];
           matH(j, j) = 2 * quad_coeffs[off];
         } else {
           matH(k, j) = quad_coeffs[off];
@@ -253,7 +251,7 @@ void PoseRegressionParameterSearch::Initialization(
     VectorXd temp(training_data.size());
     temp.fill(0.0);
     for (unsigned j = 0; j < training_data.size(); ++j) {
-      AffineXform3d pose = *training_data[j].GetRigidPose();
+      AffineXform3d pose;
       pr.InitializePose(training_data[j], pr_para, &pose);
       AffineXform3d pose_gt = label_data[j];
       double loss = para_config.lambda_trans
@@ -278,7 +276,7 @@ void PoseRegressionParameterSearch::Initialization(
 
       vec_val_dif[i] = - val_cur;
       for (unsigned j = 0; j < training_data.size(); ++j) {
-        AffineXform3d pose = *training_data[j].GetRigidPose();
+        AffineXform3d pose;
         pr.InitializePose(training_data[j], pr_para, &pose);
         AffineXform3d pose_gt = label_data[j];
         double loss = para_config.lambda_trans * (pose[0] - pose_gt[0]).squaredNorm()
@@ -370,7 +368,7 @@ void PoseRegressionParameterSearch::Initialization(
       pr_para.gamma_sym = para->gamma_sym + dpara[1];
       double val_dif_next = -val_cur;
       for (unsigned j = 0; j < training_data.size(); ++j) {
-        AffineXform3d pose = *training_data[j].GetRigidPose(); 
+        AffineXform3d pose; 
         pr.InitializePose(training_data[j], pr_para, &pose);
         AffineXform3d pose_gt = label_data[j];
         double loss = para_config.lambda_trans * (pose[0] - pose_gt[0]).squaredNorm()
@@ -384,7 +382,7 @@ void PoseRegressionParameterSearch::Initialization(
       double val_dif_next_median = temp[temp.size() / 2] - val_cur_median;
       if (val_dif_next_median >= 0) {
         if (search_id == 0) {
-          for (int j = 0; j < 5; ++j)
+          for (int j = 0; j < 2; ++j)
             if (abs(matH(j, j)) > lambda)
               lambda = abs(matH(j, j));
         }

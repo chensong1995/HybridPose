@@ -34,14 +34,14 @@ def load_session(model, optim, args):
 def compute_add_score(pts3d, diameter, pose_gt, pose_pred, percentage=0.1):
     R_gt, t_gt = pose_gt
     R_pred, t_pred = pose_pred
-
     count = R_gt.shape[0]
     mean_distances = np.zeros((count,), dtype=np.float32)
     for i in range(count):
-        pts_xformed_gt = R_gt[i] * pts3d.transpose() + t_gt[i]
+        pts_xformed_gt = R_gt[i] * pts3d.transpose() + t_gt[i]        
         pts_xformed_pred = R_pred[i] * pts3d.transpose() + t_pred[i]
         distance = np.linalg.norm(pts_xformed_gt - pts_xformed_pred, axis=0)
-        mean_distances[i] = np.mean(distance)
+        mean_distances[i] = np.mean(distance)            
+
     threshold = diameter * percentage
     score = (mean_distances < threshold).sum() / count
     return score
@@ -53,6 +53,9 @@ def compute_adds_score(pts3d, diameter, pose_gt, pose_pred, percentage=0.1):
     count = R_gt.shape[0]
     mean_distances = np.zeros((count,), dtype=np.float32)
     for i in range(count):
+        if np.isnan(np.sum(t_pred[i])):
+            mean_distances[i] = diameter * percentage
+            continue
         pts_xformed_gt = R_gt[i] * pts3d.transpose() + t_gt[i]
         pts_xformed_pred = R_pred[i] * pts3d.transpose() + t_pred[i]
         kdt = KDTree(pts_xformed_gt.transpose(), metric='euclidean')

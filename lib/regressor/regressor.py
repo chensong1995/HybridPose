@@ -51,17 +51,20 @@ def load_wrapper():
     # get_symmetry_weight()
     regressor.get_symmetry_weight.argtypes = [c_void_p, c_void_p, c_int]
     # set_normal_gt()
-    regressor.set_normal_gt.argtypes = [c_void_p, c_void_p]      
-    # regress()
-    regressor.regress.argtypes = [c_void_p, c_void_p, c_void_p]
-    regressor.regress.restype = c_void_p  
+    regressor.set_normal_gt.argtypes = [c_void_p, c_void_p]
+    # initialize_pose()
+    regressor.initialize_pose.argtypes = [c_void_p, c_void_p]
+    regressor.initialize_pose.restype = c_void_p
+    # refine_pose()
+    regressor.refine_pose.argtypes = [c_void_p, c_void_p]
+    regressor.refine_pose.restype = c_void_p
 
     ## search parameter
     regressor.new_container_para.restype = c_void_p
     regressor.new_container_pose.restype = c_void_p
     # get_prediction_container()
     regressor.get_prediction_container.argtypes = [c_void_p, c_int]
-    regressor.get_prediction_container.restype = c_void_p 
+    regressor.get_prediction_container.restype = c_void_p
     # set_pose_gt()
     regressor.set_pose_gt.argtypes = [c_void_p, c_int, c_2darr_p]
     # search_pose_initial()

@@ -19,7 +19,6 @@ extern "C" {
     }
   }
 
-
   void get_pose(HybridPredictionContainer* container, float** pose) {
     AffineXform3d* p = container->GetRigidPose();
     for (int i = 0; i < 4; i++) {
@@ -220,23 +219,41 @@ extern "C" {
     container->SetReflectionPlaneNormal(normal);
   }
 
-  HybridPredictionContainer* regress(HybridPredictionContainer* predictions, 
-                                     PRRefinePara* pr_para, PRInitPara* pi_para) {
+
+  HybridPredictionContainer* initialize_pose(HybridPredictionContainer* predictions, 
+                                             PRInitPara* pi_para) {
     AffineXform3d pose;
     PoseRegression pr;
     PoseRegressionPara para;
-    // set search parameters for pose initial
+
     para.gamma_edge = pi_para->gamma_edge;
     para.gamma_sym = pi_para->gamma_sym;
-    // set searched parameters for pose refine    
+
+    pr.InitializePose(*predictions, para, &pose);
+
+    AffineXform3d* p = predictions->GetRigidPose();
+    for (int i = 0; i < 4; i++) {
+      for (int j = 0; j < 3; j++) {
+        (*p)[i][j] = pose[i][j];
+      }
+    }
+    return predictions;
+  }
+
+  HybridPredictionContainer* refine_pose(HybridPredictionContainer* predictions,
+                                         PRRefinePara* pr_para) {
+    AffineXform3d pose = *(predictions->GetRigidPose());;
+    PoseRegression pr;
+    PoseRegressionPara para;
+
     para.beta_edge = pr_para->beta_edge;
     para.beta_sym = pr_para->beta_sym;
     para.alpha_kpts = pr_para->alpha_kpts;
     para.alpha_edge = pr_para->alpha_edge;
-    para.alpha_sym = pr_para->alpha_sym;    
+    para.alpha_sym = pr_para->alpha_sym;
 
-    pr.InitializePose(*predictions, para, &pose);
     pr.RefinePose(*predictions, para, &pose);
+
     AffineXform3d* p = predictions->GetRigidPose();
     for (int i = 0; i < 4; i++) {
       for (int j = 0; j < 3; j++) {
@@ -281,8 +298,8 @@ extern "C" {
     return hpc;
   }
   
-  // parameter search
   vector<HybridPredictionContainer>* new_container_para() {
+    // a vector of intermediate predictions for N=20 examples in the val set
     vector<HybridPredictionContainer>* hpc_para = new vector<HybridPredictionContainer>();   
     (*hpc_para).resize(20);    
 
@@ -301,6 +318,7 @@ extern "C" {
   }
 
   vector<AffineXform3d>* new_container_pose() {    
+    // a vector of ground-truth poses for N=20 exmaples in the val set
     vector<AffineXform3d>* poses = new vector<AffineXform3d>();   
     (*poses).resize(20);
     return poses;
@@ -317,38 +335,4 @@ extern "C" {
     delete c4;
     delete c5;
   }
-
-
-
 }
-
-
-/*Question: fun(XX* a)
-vector<HybridPredictionContainer>* predictions_para;
-vector<AffineXform3d>* poses_gt;
-
-PoseRegressionParameterSearch pr_ps;
- pr_ps.Refinement(*predictions_para, *poses_gt, ps_config, &pr_para);  // XX* cannot XX&
-
-
-void PoseRegressionParameterSearch::Refinement(
-  const vector<HybridPredictionContainer>& training_data,
-  const vector<AffineXform3d>& label_data,
-  const ParameterSearchConfig& para_config,
-  PRRefinePara* para)
-
-
-
-but the following works:
-
-PoseRegressionParameterSearch pr_ps;
- pr_ps.Refinement(*predictions_para, *poses_gt, ps_config, &pr_para);  // XX* cannot XX&
-
-
-void PoseRegressionParameterSearch::Refinement(
-  vector<HybridPredictionContainer>& training_data,
-  vector<AffineXform3d>& label_data,
-  const ParameterSearchConfig& para_config,
-  PRRefinePara* para)
-
-  */

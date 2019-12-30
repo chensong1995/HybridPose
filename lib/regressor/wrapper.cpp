@@ -228,19 +228,12 @@ extern "C" {
     // set search parameters for pose initial
     para.gamma_edge = pi_para->gamma_edge;
     para.gamma_sym = pi_para->gamma_sym;
-    // set searched parameters for pose refine
-    /*
+    // set searched parameters for pose refine    
     para.beta_edge = pr_para->beta_edge;
     para.beta_sym = pr_para->beta_sym;
     para.alpha_kpts = pr_para->alpha_kpts;
     para.alpha_edge = pr_para->alpha_edge;
-    para.alpha_sym = pr_para->alpha_sym;
-    */    
-    para.beta_edge = 0.124043;
-    para.beta_sym = 0.03147796;
-    para.alpha_kpts = 0.023098;
-    para.alpha_edge = 0.020594;
-    para.alpha_sym = 2.04808e-05;    
+    para.alpha_sym = pr_para->alpha_sym;    
 
     pr.InitializePose(*predictions, para, &pose);
     pr.RefinePose(*predictions, para, &pose);
@@ -262,7 +255,7 @@ extern "C" {
     ParameterSearchConfig ps_config;    
     ps_config.lambda_trans = 4. / (diameter * diameter);
     PRRefinePara* pr_para = new PRRefinePara();
-    //pr_ps.Refinement(*predictions_para, *poses_gt, (const ParameterSearchConfig) ps_config, pr_para);
+    pr_ps.Refinement(*predictions_para, *poses_gt, (const ParameterSearchConfig) ps_config, pr_para);
     return pr_para;
   }
 
@@ -275,11 +268,9 @@ extern "C" {
     ParameterSearchConfig ps_config;    
     ps_config.lambda_trans = 4. / (diameter * diameter);
     PRInitPara* pi_para = new PRInitPara();
-    //pr_ps.Initialization(*predictions_para, *poses_gt, (const ParameterSearchConfig) ps_config, pi_para);
+    pr_ps.Initialization(*predictions_para, *poses_gt, (const ParameterSearchConfig) ps_config, pi_para);
     return pi_para;
   }
-
-
 
   HybridPredictionContainer* new_container() {
     HybridPredictionContainer* hpc = new HybridPredictionContainer();
@@ -289,8 +280,7 @@ extern "C" {
     set_edge_ids(hpc, start_id, end_id, 28);
     return hpc;
   }
-
-
+  
   // parameter search
   vector<HybridPredictionContainer>* new_container_para() {
     vector<HybridPredictionContainer>* hpc_para = new vector<HybridPredictionContainer>();   

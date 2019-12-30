@@ -1,10 +1,7 @@
 ﻿#include "pose_regression_parameter_search.h"
-//#include "dynamic_linear_algebra.h"
-//#include "dynamic_linear_algebra_templcode.h"
 #include <algorithm>
 
-float rand_val() {
-  //return (rand() - 16384.f)*2.f/32769.f;
+float rand_val() { 
   return (float) rand() / RAND_MAX;
 }
 
@@ -14,20 +11,16 @@ void PoseRegressionParameterSearch::Refinement(
   const ParameterSearchConfig& para_config,
   PRRefinePara* para) {
   // Encode the differences between the values of the samples
-  // and the current sample configuration
-  //DMatrixD mat_x_dif(para_config.num_samples, 5);
+  // and the current sample configuration  
   Matrix<double, 5, Dynamic> mat_x_dif(5, para_config.num_samples);
   mat_x_dif.fill(0.0);
   // Encode the differences between the values of the objective functions
-  // under these samples and the current objective value
-  //DVectorD vec_val_dif(para_config.num_samples);
+  // under these samples and the current objective value 
   VectorXd vec_val_dif(para_config.num_samples);
-  vec_val_dif.fill(0.0);
-  //DVectorD vec_val_dif_median(para_config.num_samples);
+  vec_val_dif.fill(0.0);  
   VectorXd vec_val_dif_median(para_config.num_samples);
   vec_val_dif_median.fill(0.0);
-  // Store the current configuration
-  //DVectorD x_cur(5);
+  // Store the current configuration 
   VectorXd x_cur(5);
   x_cur.fill(0.0);
 
@@ -49,7 +42,7 @@ void PoseRegressionParameterSearch::Refinement(
       pr.RefinePose(training_data[j], pr_para, &pose);
       AffineXform3d pose_gt = label_data[j];
       double loss = para_config.lambda_trans
-        * (pose[0] - pose_gt[0]).squaredNorm() //changed
+        * (pose[0] - pose_gt[0]).squaredNorm()
         + (pose[1] - pose_gt[1]).squaredNorm()
         + (pose[2] - pose_gt[2]).squaredNorm()
         + (pose[3] - pose_gt[3]).squaredNorm();
@@ -98,28 +91,23 @@ void PoseRegressionParameterSearch::Refinement(
     Matrix<double, Dynamic, Dynamic> matJ(dim, para_config.num_samples);
     matJ.fill(0.0);
     for (unsigned i = 0; i < para_config.num_samples; ++i) {
-      for (int j = 0; j < 5; ++j) {
-        //matJ[i][j] = mat_x_dif[i][j];
+      for (int j = 0; j < 5; ++j) {      
         matJ(j, i) = mat_x_dif(j, i);
       }
       int off = 5;
       for (int j = 0; j < 5; ++j) {
-        for (int k = j; k < 5; ++k) {
-          //matJ[i][off] = mat_x_dif[i][j] * mat_x_dif[i][k];         
+        for (int k = j; k < 5; ++k) {       
           matJ(off, i) = mat_x_dif(j, i) * mat_x_dif(k, i);  
           off = off + 1;
         }
       }
-    }
-    //DMatrixD matA = matJ * matJ.Transpose();
+    }  
     Matrix<double, Dynamic, Dynamic> matA(dim, dim);
     matA.fill(0.0);
-    matA = matJ * matJ.transpose();
-    //DVectorD vecb = matJ * vec_val_dif_median;
+    matA = matJ * matJ.transpose(); 
     VectorXd vecb(para_config.num_samples);
     vecb.fill(0.0);
-    vecb = matJ * vec_val_dif_median;
-    //DVectorD quad_coeffs(20);
+    vecb = matJ * vec_val_dif_median;   
     VectorXd quad_coeffs(20);
     quad_coeffs.fill(0.0);
     Solve(matA, vecb, &quad_coeffs);
@@ -143,7 +131,6 @@ void PoseRegressionParameterSearch::Refinement(
         off = off + 1;
       }
     }
-    //DVectorD dpara(5);
     VectorXd dpara(5);
     dpara.fill(0.0);
     Solve(matH, vecg, &dpara);
@@ -224,7 +211,6 @@ void PoseRegressionParameterSearch::Initialization(
   vector<AffineXform3d>& label_data,
   const ParameterSearchConfig& para_config,
   PRInitPara* para) {
-  //return;
 // Encode the differences between the values of the samples
   // and the current sample configuration 
   Matrix<double, 2, Dynamic> mat_x_dif(2, para_config.num_samples);
@@ -233,7 +219,6 @@ void PoseRegressionParameterSearch::Initialization(
   // under these samples and the current objective value 
   VectorXd vec_val_dif(para_config.num_samples);
   vec_val_dif.fill(0.0);
-  //DVectorD vec_val_dif_median(para_config.num_samples);
   VectorXd vec_val_dif_median(para_config.num_samples);
   vec_val_dif_median.fill(0.0);
   // Store the current configuration
@@ -255,7 +240,7 @@ void PoseRegressionParameterSearch::Initialization(
       pr.InitializePose(training_data[j], pr_para, &pose);
       AffineXform3d pose_gt = label_data[j];
       double loss = para_config.lambda_trans
-        * (pose[0] - pose_gt[0]).squaredNorm() //changed
+        * (pose[0] - pose_gt[0]).squaredNorm() 
         + (pose[1] - pose_gt[1]).squaredNorm()
         + (pose[2] - pose_gt[2]).squaredNorm()
         + (pose[3] - pose_gt[3]).squaredNorm();
@@ -299,8 +284,7 @@ void PoseRegressionParameterSearch::Initialization(
       }
       int off = 2;
       for (int j = 0; j < 2; ++j) {
-        for (int k = j; k < 2; ++k) {          
-          //matJ[i][off] = mat_x_dif[i][j] * mat_x_dif[i][k];         
+        for (int k = j; k < 2; ++k) {  
           matJ(off, i) = mat_x_dif(j, i) * mat_x_dif(k, i); 
           off = off + 1;
         }
@@ -395,8 +379,7 @@ void PoseRegressionParameterSearch::Initialization(
       printf("pose initial search_iter = %d, loss_reduction = %f\n", iter, val_dif_next_median);
       updated = true;
       break;
-    }
-    
+    }    
 
     if (updated == false) {
       printf("Parameter search for initialization module is terminated.\n");
@@ -407,8 +390,7 @@ void PoseRegressionParameterSearch::Initialization(
 
 bool PoseRegressionParameterSearch::Solve(
   const Matrix<double, Dynamic, Dynamic>& A, const VectorXd& b, VectorXd* x) {
-  // Using LLT factorization to solve the symmetric linear system
-  //if (b.GetDim() != x->GetDim() || b.GetDim() != A.GetColsDim())
+  // Using LLT factorization to solve the symmetric linear system 
   if (b.size() != x->size() || b.size() != A.cols()) 
     return false;
 

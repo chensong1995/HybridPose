@@ -89,11 +89,6 @@ void PoseRegression::GenerateDataMatrix(const HybridPredictionContainer& predict
     // calculate weight for keypoints
     //kp.inv_half_var
     EigenSolver<Matrix2d> es_kp(kp.inv_half_var);   
-    /*
-    W_kpts(ptId * 3, ptId * 3) = weight_keypts[ptId];
-    W_kpts(ptId * 3 + 1, ptId * 3 + 1) = weight_keypts[ptId];
-    W_kpts(ptId * 3 + 2, ptId * 3 + 2) = weight_keypts[ptId];   
-    */
     W_kpts(ptId * 3, ptId * 3) = es_kp.eigenvalues().norm() * 0.02;
     W_kpts(ptId * 3 + 1, ptId * 3 + 1) = es_kp.eigenvalues().norm() * 0.02;
     W_kpts(ptId * 3 + 2, ptId * 3 + 2) = es_kp.eigenvalues().norm() * 2; 
@@ -214,7 +209,6 @@ void PoseRegression::GenerateDataMatrix(const HybridPredictionContainer& predict
     }
   } 
 }
-
 
 // Leading eigen-space computation
 void PoseRegression::LeadingEigenSpace(Matrix12d& data_matrix, const unsigned& numEigs, 

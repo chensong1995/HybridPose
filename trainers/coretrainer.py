@@ -349,7 +349,7 @@ class CoreTrainer(object):
         order = np.argsort(saliency)
         seeds = [[order[0]], [1]]
         flags = np.zeros((order.shape[0],), dtype=np.uint32)
-        flags[order[0]] = 0 #
+        flags[order[0]] = 0
         for i in range(1, order.shape[0]):
             min_sqr_dis = np.inf
             closest_seed_i = -1
@@ -366,33 +366,20 @@ class CoreTrainer(object):
             else:
                 seeds[0].append(order[i])
                 seeds[1].append(1)
-                flags[order[i]] = len(seeds[0]) - 1 #
+                flags[order[i]] = len(seeds[0]) - 1
         valid_is = np.argwhere(np.array(seeds[1]) > (max(seeds[1]) / 3)).transpose()[0]
         seeds = np.array(seeds, dtype=np.uint32)
         seeds = seeds[:, valid_is]
         n_symmetry = seeds.shape[1]
         qs1_cross_qs2 = np.zeros((n_symmetry, 3), dtype=np.float32)
-        for i in range(n_symmetry):
-            #row_is = np.argwhere(flags == i).transpose()[0]
+        for i in range(n_symmetry):            
             row_is = np.argwhere(flags == valid_is[i]).transpose()[0]
             qs1_cross_qs2[i] = np.mean(vecs_pred[row_is], axis=0)
             qs1_cross_qs2[i] /= np.linalg.norm(qs1_cross_qs2[i])
         symmetry_weight = np.float32(seeds[1])
         symmetry_weight /= np.max(symmetry_weight)
         return qs1_cross_qs2, symmetry_weight
-
-    def read_file(self):
-    
-        from scipy.io import loadmat
-        #result = loadmat('./occlusion_linemod_ape_qixing.mat')
-        result = loadmat('./test.mat')
-        result_t = []
-        for i in range(len(result['t'])):
-            result_t.append(result['t'][i].reshape([3, 1]))
-        result['t_pred'] = result_t
-        result['R_pred'] = result['R']        
-        return result
-
+   
     def regress_pose(self, regressor, predictions, pr_para, pi_para, K, K_inv, pts3d, pts2d_pred_loc, pts2d_pred_var, graph_pred, sym_cor_pred, mask_pred, normal_gt):
         if mask_pred.sum() == 0:
             # object is not detected
@@ -437,9 +424,8 @@ class CoreTrainer(object):
             cov = np.cov(xs, ys)
             cov = (cov + cov.transpose()) / 2 # ensure the covariance matrix is symmetric
             v, u = np.linalg.eig(cov)
-            v = np.matrix(np.diag(1. / np.sqrt(v)))
-            edge_inv_half_var[i] = np.eye(2)
-            #edge_inv_half_var[i] = u * v * u.transpose()
+            v = np.matrix(np.diag(1. / np.sqrt(v)))            
+            edge_inv_half_var[i] = u * v * u.transpose()
            
         vec_pred = np.array(K_inv[:2, :2] * np.matrix(vec_pred).transpose()).transpose()
         edge_inv_half_var = edge_inv_half_var.reshape((n_edges, 4))
@@ -468,22 +454,7 @@ class CoreTrainer(object):
                                     n_symmetry)
         regressor.set_symmetry_weight(predictions,
                                       symmetry_weight.ctypes,
-                                      n_symmetry)
-        # TODO: remove this after initialization module is completed by Jiaru
-        # set initial pose        
-        pts2d_ = np.float64(pts2d_pred_loc)
-        pts3d_ = np.float64(pts3d)
-        dist_coeffs = np.zeros((5, 1))
-        retval, rvec, tvec = cv2.solvePnP(pts3d_.reshape((-1, 1, 3)),
-                                          pts2d_.reshape((-1, 1, 2)),
-                                          np.float64(K),
-                                          dist_coeffs,
-                                          flags=cv2.SOLVEPNP_EPNP)
-        r = cv2.Rodrigues(rvec)[0]
-        pose_init = np.zeros((4, 3), dtype=np.float32)
-        pose_init[0] = tvec.transpose()[0]
-        pose_init[1:] = r.transpose()
-        regressor.set_pose(predictions, get_2d_ctypes(pose_init))     
+                                      n_symmetry)  
         # regress        
         predictions = regressor.regress(predictions, pr_para, pi_para)
         pose_final = np.zeros((4, 3), dtype=np.float32)
@@ -501,7 +472,6 @@ class CoreTrainer(object):
                 continue            
             if np.sum(para_data['pts2d_pred_loc'][data_id]) == 0:
                 continue                
-
             # load intermediate representations to regressor            
             predictions = regressor.get_prediction_container(predictions_para, para_id)            
             n_keypts = self.args.num_keypoints
@@ -581,23 +551,7 @@ class CoreTrainer(object):
             r = para_data['R_gt'][data_id]
             pose_gt[0] = tvec.transpose()[0]
             pose_gt[1:] = r.transpose()            
-            regressor.set_pose_gt(poses_para, para_id, get_2d_ctypes(pose_gt))
-
-            # TODO: remove this after initialization module is completed by Jiaru
-            # set initial pose        
-            pts2d_ = np.float64(pts2d_pred_loc)
-            pts3d_ = np.float64(pts3d)
-            dist_coeffs = np.zeros((5, 1))
-            retval, rvec, tvec = cv2.solvePnP(pts3d_.reshape((-1, 1, 3)),
-                                              pts2d_.reshape((-1, 1, 2)),
-                                              np.float64(K),
-                                              dist_coeffs,
-                                              flags=cv2.SOLVEPNP_EPNP)
-            r = cv2.Rodrigues(rvec)[0]
-            pose_init = np.zeros((4, 3), dtype=np.float32)
-            pose_init[0] = tvec.transpose()[0]
-            pose_init[1:] = r.transpose()
-            regressor.set_pose(predictions, get_2d_ctypes(pose_init))
+            regressor.set_pose_gt(poses_para, para_id, get_2d_ctypes(pose_gt))          
             para_id += 1        
         # search parameter
         # para_id is datasize for parameter search        

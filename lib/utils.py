@@ -54,7 +54,7 @@ def compute_adds_score(pts3d, diameter, pose_gt, pose_pred, percentage=0.1):
     mean_distances = np.zeros((count,), dtype=np.float32)
     for i in range(count):
         if np.isnan(np.sum(t_pred[i])):
-            mean_distances[i] = diameter * percentage
+            mean_distances[i] = np.inf
             continue
         pts_xformed_gt = R_gt[i] * pts3d.transpose() + t_gt[i]
         pts_xformed_pred = R_pred[i] * pts3d.transpose() + t_pred[i]

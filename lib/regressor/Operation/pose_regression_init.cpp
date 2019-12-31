@@ -87,11 +87,11 @@ void PoseRegression::GenerateDataMatrix(const HybridPredictionContainer& predict
     J_kpts(11, ptId * 3) = -y_hc * 1.0; J_kpts(11, ptId * 3 + 1) = x_hc * 1.0; J_kpts(11, ptId * 3 + 2) = 0 * 1.0;
     
     // calculate weight for keypoints
-    //kp.inv_half_var
+    //kp.inv_half_var    
     EigenSolver<Matrix2d> es_kp(kp.inv_half_var);   
     W_kpts(ptId * 3, ptId * 3) = es_kp.eigenvalues().norm() * 0.02;
     W_kpts(ptId * 3 + 1, ptId * 3 + 1) = es_kp.eigenvalues().norm() * 0.02;
-    W_kpts(ptId * 3 + 2, ptId * 3 + 2) = es_kp.eigenvalues().norm() * 2; 
+    W_kpts(ptId * 3 + 2, ptId * 3 + 2) = es_kp.eigenvalues().norm() * 2;        
   }  
   // add J_kpts into Datamatrix
   M_kpts = J_kpts * W_kpts * J_kpts.transpose();  
@@ -117,7 +117,6 @@ void PoseRegression::GenerateDataMatrix(const HybridPredictionContainer& predict
     // pts2d_s
     // pts3d_t
     // edge3d
-
     // Part1 of step2
     double x_hc, y_hc, z_hc; // denotes pts2d_s
     x_hc = kp_end.point2D_pred[0];  
@@ -238,36 +237,32 @@ void PoseRegression::LeadingEigenSpace(Matrix12d& data_matrix, const unsigned& n
   Matrix6d C;
   Vector6d y(1.0, 0.0, 0.0, 1.0, 0.0, 1.0);
   Vector6d gamma;
-  unsigned row_id;
-  for(row_id = 0; row_id < 3; ++row_id) {   
-    C(row_id, 0) = B1(0, row_id); C(row_id, 1) = B2(0, row_id); C(row_id, 2) = B3(0, row_id);
-    C(row_id, 3) = B4(0, row_id); C(row_id, 4) = B5(0, row_id); C(row_id, 5) = B6(0, row_id);
-  }
-  for(row_id = 3; row_id < 5; ++row_id) {   
-    C(row_id, 0) = B1(1, row_id - 2); C(row_id, 1) = B2(1, row_id - 2); C(row_id, 2) = B3(1, row_id - 2);
-    C(row_id, 3) = B4(1, row_id - 2); C(row_id, 4) = B5(1, row_id - 2); C(row_id, 5) = B6(1, row_id - 2);
-  }
-  row_id = 5;
-  C(row_id, 0) = B1(2,row_id - 3); C(row_id, 1) = B2(2, row_id - 3); C(row_id, 2) = B3(2, row_id - 3);
-  C(row_id, 3) = B4(2,row_id - 3); C(row_id, 4) = B5(2, row_id - 3); C(row_id, 5) = B6(2, row_id - 3);
+ 
+  C(0, 0) = B1(0, 0); C(0, 1) = B2(0, 0); C(0, 2) = B3(0, 0); C(0, 3) = B4(0, 0); C(0, 4) = B5(0, 0); C(0, 5) = B6(0, 0);
+  C(1, 0) = B1(0, 1); C(1, 1) = B2(0, 1); C(1, 2) = B3(0, 1); C(1, 3) = B4(0, 1); C(1, 4) = B5(0, 1); C(1, 5) = B6(0, 1);
+  C(2, 0) = B1(0, 2); C(2, 1) = B2(0, 2); C(2, 2) = B3(0, 2); C(2, 3) = B4(0, 2); C(2, 4) = B5(0, 2); C(2, 5) = B6(0, 2);
+  C(3, 0) = B1(1, 1); C(3, 1) = B2(1, 1); C(3, 2) = B3(1, 1); C(3, 3) = B4(1, 1); C(3, 4) = B5(1, 1); C(3, 5) = B6(1, 1);
+  C(4, 0) = B1(1, 2); C(4, 1) = B2(1, 2); C(4, 2) = B3(1, 2); C(4, 3) = B4(1, 2); C(4, 4) = B5(1, 2); C(4, 5) = B6(1, 2);
+  C(5, 0) = B1(2, 2); C(5, 1) = B2(2, 2); C(5, 2) = B3(2, 2); C(5, 3) = B4(2, 2); C(5, 4) = B5(2, 2); C(5, 5) = B6(2, 2);
+  
   gamma = C.lu().solve(y);
   //project gamma in to valid coefficient space
-  Matrix3d Gamma;
+  MatrixXd Gamma = MatrixXd::Random(3, 3);
   Gamma(0, 0) = gamma[0];  Gamma(0, 1) = gamma[1];  Gamma(0, 2) = gamma[2]; 
   Gamma(1, 0) = gamma[1];  Gamma(1, 1) = gamma[3];  Gamma(1, 2) = gamma[4]; 
   Gamma(2, 0) = gamma[2];  Gamma(2, 1) = gamma[4];  Gamma(2, 2) = gamma[5]; 
-  EigenSolver<Matrix3d> es(Gamma);
+  // calculated sorted eigen vector and eigen value in increasing order
+  SelfAdjointEigenSolver<MatrixXd> es(Gamma); 
   MatrixXcd D = es.eigenvalues().asDiagonal();
-  D(1, 1) = 0;
-  D(2, 2) = 0;
   MatrixXcd V = es.eigenvectors();
+  D(0, 0) = 0;
+  D(1, 1) = 0;  
   Gamma = (V * D * V.inverse()).real();  
   // assign new gamma
   gamma[0] = Gamma(0, 0); gamma[1] = Gamma(0, 1); gamma[2] = Gamma(0, 2);
   gamma[3] = Gamma(1, 1); gamma[4] = Gamma(1, 2); gamma[5] = Gamma(2, 2);
   if (gamma[0] < 0)
     gamma *= -1.0;
-
   // recover initial coefficient beta from gamma with following equations:
   // gamma[0] = beta[0]^2; gamma[1] = beta[0] * beta[1]; gamma[2] = beta[0]*beta[2]
   // gamma[3] = beta[1]^2; gamma[4] = beta[1] * beta[2]; gamma[5] = beta[2]^2;
@@ -327,7 +322,7 @@ void PoseRegression::LeadingEigenSpace(Matrix12d& data_matrix, const unsigned& n
   }
 
   // optimize beta and R_init simutaneously
-  Matrix3d A = beta[0] * A1 + beta[1] * A2 + beta[2] * A3 + beta[3] * A4;
+  Matrix3d A = R_init;
   Matrix3d R;
   for(unsigned iter = 0; iter < 10; ++iter) {
     // optimize R_init
@@ -353,8 +348,8 @@ void PoseRegression::LeadingEigenSpace(Matrix12d& data_matrix, const unsigned& n
       D(row_id, 0) = A1(2, row_id - 6); D(row_id, 1) = A2(2, row_id - 6); 
       D(row_id, 2) = A3(2, row_id - 6); D(row_id, 3) = A4(2, row_id - 6); 
     }   
-
-    Map<VectorXd> dy(R.transpose().data(), 9, 1);
+    Matrix3d R_temp = R.transpose();  
+    Map<VectorXd> dy(R_temp.data(), 9, 1);
     beta = D.bdcSvd(ComputeFullV | ComputeFullU).solve(dy);    
     A = beta[0] * A1 + beta[1] * A2 + beta[2] * A3 + beta[3] * A4;
   }

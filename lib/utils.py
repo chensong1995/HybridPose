@@ -72,15 +72,15 @@ def compute_pose_error(diameter, pose_gt, pose_pred):
     R_pred, t_pred = pose_pred
 
     count = R_gt.shape[0]
-    R_err = 0
-    t_err = 0
+    R_err = np.zeros(count)
+    t_err = np.zeros(count)
     for i in range(count):
         if np.isnan(np.sum(t_pred[i])):
             continue
         r_err = logm(np.dot(R_pred[i].transpose(), R_gt[i])) / 2
-        R_err += LA.norm(r_err, 'fro')
-        t_err += LA.norm(t_pred[i] - t_gt[i])
-    return (R_err / count) * 180 / np.pi, t_err / (count * diameter)
+        R_err[i] = LA.norm(r_err, 'fro')
+        t_err[i] = LA.norm(t_pred[i] - t_gt[i])
+    return np.median(R_err) * 180 / np.pi, np.median(t_err) / diameter
 
 class AverageMeter(object):
     """Computes and stores the average and current value"""

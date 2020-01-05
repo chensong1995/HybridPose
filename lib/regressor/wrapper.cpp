@@ -293,12 +293,14 @@ extern "C" {
     ParameterSearchConfig ps_config;    
     ps_config.lambda_trans = 4. / (diameter * diameter);
     PRInitPara* pi_para = new PRInitPara();
+    /*
     pr_ps.Initialization(*predictions_para, *poses_gt, (const ParameterSearchConfig) ps_config, pi_para);
     
     // set pose initial for validation set using searched parameters
+    
     for (unsigned id = 0; id < data_size; id++) {
       initialize_pose(&((*predictions_para)[id]), pi_para, 1, 1, 1);
-    }
+    }*/
     return pi_para;
   }
 

@@ -144,7 +144,7 @@ extern "C" {
     for (int i = 0; i < ne; i++) {
       for (int j = 0; j < 2; j++) {
         for (int k = 0; k < 2; k++) {
-          (*edges)[i].inv_half_var(k, j) = inv_half_var[i][j * 2 + k];
+          (*edges)[i].inv_half_var(j, k) = inv_half_var[i][j * 2 + k];
         }
       }
     }
@@ -157,7 +157,7 @@ extern "C" {
     for (int i = 0; i < ne; i++) {
       for (int j = 0; j < 2; j++) {
         for (int k = 0; k < 2; k++) {
-          inv_half_var[i][j * 2 + k] = (*edges)[i].inv_half_var(k, j);
+          inv_half_var[i][j * 2 + k] = (*edges)[i].inv_half_var(j, k);
         }
       }
     }
@@ -261,13 +261,13 @@ extern "C" {
     para.alpha_sym = pr_para->alpha_sym;
 
     pr.RefinePose(*predictions, para, &pose);
-
     AffineXform3d* p = predictions->GetRigidPose();
     for (int i = 0; i < 4; i++) {
       for (int j = 0; j < 3; j++) {
         (*p)[i][j] = pose[i][j];
       }
     }
+
     return predictions;
   }
 

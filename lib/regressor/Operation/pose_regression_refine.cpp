@@ -158,8 +158,6 @@ void PoseRegression::RefinePose(const HybridPredictionContainer& predictions,
           break;
       }
     }
-    Reweighting(predictions, para, *rigid_pose,
-      &weight_keypts, &weight_edges, &weight_symcorres);
   }
 }
 

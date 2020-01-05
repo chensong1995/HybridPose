@@ -347,28 +347,29 @@ class CoreTrainer(object):
         dis, _ = kdt.query(vecs_pred, k=n_neighbors)
         saliency = np.mean(dis * dis, axis=1, dtype=np.float32)
         order = np.argsort(saliency)
-        seeds = [[order[0]], [1]]
+        seeds = np.zeros((2, order.shape[0]), dtype=np.uint32)
+        seeds[0][0] = order[0]
+        seeds[1][0] = 1
+        seeds_size = 1
         flags = np.zeros((order.shape[0],), dtype=np.uint32)
         flags[order[0]] = 0
         for i in range(1, order.shape[0]):
-            min_sqr_dis = np.inf
-            closest_seed_i = -1
             vec = vecs_pred[order[i]]
-            for j in range(len(seeds[0])):
-                dif = vec - vecs_pred[seeds[0][j]]
-                sqr_dis = np.sum(dif * dif)
-                if sqr_dis < min_sqr_dis:
-                    min_sqr_dis = sqr_dis
-                    closest_seed_i = j
-            if min_sqr_dis < sigma * sigma:
+            candidates = vecs_pred[seeds[0]]
+            dif = candidates - vec
+            norm = np.linalg.norm(dif, axis=1)
+            closest_seed_i = norm.argmin()
+            min_dis = norm[closest_seed_i]
+            if min_dis < sigma:
                 flags[order[i]] = closest_seed_i
                 seeds[1][closest_seed_i] = seeds[1][closest_seed_i] + 1
             else:
-                seeds[0].append(order[i])
-                seeds[1].append(1)
-                flags[order[i]] = len(seeds[0]) - 1
-        valid_is = np.argwhere(np.array(seeds[1]) > (max(seeds[1]) / 3)).transpose()[0]
-        seeds = np.array(seeds, dtype=np.uint32)
+                seeds[0, seeds_size] = order[i]
+                seeds[1, seeds_size] = 1
+                flags[order[i]] = seeds_size
+                seeds_size += 1
+        seeds = seeds[:, :seeds_size]
+        valid_is = np.argwhere(seeds[1] > (np.max(seeds[1]) / 3)).transpose()[0]
         seeds = seeds[:, valid_is]
         n_symmetry = seeds.shape[1]
         qs1_cross_qs2 = np.zeros((n_symmetry, 3), dtype=np.float32)
@@ -415,12 +416,17 @@ class CoreTrainer(object):
             xs = graph_pred[i, 0][mask_pred == 1.]
             ys = graph_pred[i, 1][mask_pred == 1.]
             vec_pred[i] = [xs.mean(), ys.mean()]
-            cov = np.cov(xs, ys)
-            cov = (cov + cov.transpose()) / 2 # ensure the covariance matrix is symmetric
-            v, u = np.linalg.eig(cov)
-            v = np.matrix(np.diag(1. / np.sqrt(v)))            
-            edge_inv_half_var[i] = u * v * u.transpose()
-           
+            if self.args.dataset == 'linemod':
+                cov = np.cov(xs, ys)
+                cov = (cov + cov.transpose()) / 2 # ensure the covariance matrix is symmetric
+                v, u = np.linalg.eig(cov)
+                v = np.matrix(np.diag(1. / np.sqrt(v)))
+                edge_inv_half_var[i] = u * v * u.transpose()
+            elif self.args.dataset == 'occlusion_linemod':
+                edge_inv_half_var[i] = np.eye(2)
+            else:
+                # dataset not supported
+                pdb.set_trace()
         vec_pred = np.array(K_inv[:2, :2] * np.matrix(vec_pred).transpose()).transpose()
         edge_inv_half_var = edge_inv_half_var.reshape((n_edges, 4))
         regressor.set_vec_pred(predictions,

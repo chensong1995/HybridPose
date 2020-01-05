@@ -34,7 +34,7 @@ void PoseRegression::RefinePose(const HybridPredictionContainer& predictions,
 
   for (unsigned outerIter = 0; outerIter < para.numAlternatingIters; ++outerIter) {
     for (unsigned innerIter = 0; innerIter < para.numGaussNewtonIters; ++innerIter) {
-      // buffer the projections and the first-order deriavtives
+      // buffer the projections and the first-order derivatives
       for (unsigned ptId = 0; ptId < keypoints->size(); ++ptId)
         Projection_jacobi((*keypoints)[ptId], *rigid_pose,
           &projected_keypoints[ptId],
@@ -158,6 +158,8 @@ void PoseRegression::RefinePose(const HybridPredictionContainer& predictions,
           break;
       }
     }
+    Reweighting(predictions, para, *rigid_pose,
+      &weight_keypts, &weight_edges, &weight_symcorres);
   }
 }
 
@@ -235,7 +237,8 @@ void PoseRegression::Reweighting(const HybridPredictionContainer& predictions,
     const Keypoint& kp = (*keypoints)[id];
     Projection(kp, rigid_pose, &buffer_projections[id]);
     Vector2d dif = kp.point2D_pred - buffer_projections[id];
-    (*weight_keypts)[id] = sigma2 / (sigma2 + dif.squaredNorm());
+    Vector2d adjusted_dif = kp.inv_half_var * dif;  
+    (*weight_keypts)[id] = sigma2 / (sigma2 + adjusted_dif.squaredNorm());
   }
 
   weight_edge->resize(edges->size());
@@ -243,7 +246,8 @@ void PoseRegression::Reweighting(const HybridPredictionContainer& predictions,
   for (unsigned id = 0; id < edges->size(); ++id) {
     const EdgeVector& ev = (*edges)[id];
     Vector2d dif = ev.vec_pred - (buffer_projections[ev.start_id] - buffer_projections[ev.end_id]);
-    (*weight_edge)[id] = sigma2 / (sigma2 + dif.squaredNorm());
+    Vector2d adjusted_dif = ev.inv_half_var * dif;
+    (*weight_edge)[id] = sigma2 / (sigma2 + adjusted_dif.squaredNorm());
   }
 
   weight_symcorres->resize(symcorres->size());

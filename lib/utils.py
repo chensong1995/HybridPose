@@ -3,6 +3,8 @@ import pdb
 import torch
 import numpy as np
 from sklearn.neighbors import KDTree
+from scipy.linalg import logm
+from numpy import linalg as LA
 
 def save_session(model, optim, save_dir, note, epoch):
     # note0 loss note1 lr
@@ -64,6 +66,21 @@ def compute_adds_score(pts3d, diameter, pose_gt, pose_pred, percentage=0.1):
     threshold = diameter * percentage
     score = (mean_distances < threshold).sum() / count
     return score
+
+def compute_pose_error(diameter, pose_gt, pose_pred):
+    R_gt, t_gt = pose_gt
+    R_pred, t_pred = pose_pred
+
+    count = R_gt.shape[0]
+    R_err = 0
+    t_err = 0
+    for i in range(count):
+        if np.isnan(np.sum(t_pred[i])):
+            continue
+        r_err = logm(np.dot(R_pred[i].transpose(), R_gt[i])) / 2
+        R_err += LA.norm(r_err, 'fro')
+        t_err += LA.norm(t_pred[i] - t_gt[i])
+    return (R_err / count) * 180 / np.pi, t_err / (count * diameter)
 
 class AverageMeter(object):
     """Computes and stores the average and current value"""

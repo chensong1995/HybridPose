@@ -53,10 +53,10 @@ def load_wrapper():
     # set_normal_gt()
     regressor.set_normal_gt.argtypes = [c_void_p, c_void_p]
     # initialize_pose()
-    regressor.initialize_pose.argtypes = [c_void_p, c_void_p]
+    regressor.initialize_pose.argtypes = [c_void_p, c_void_p, c_int, c_int, c_int]
     regressor.initialize_pose.restype = c_void_p
     # refine_pose()
-    regressor.refine_pose.argtypes = [c_void_p, c_void_p]
+    regressor.refine_pose.argtypes = [c_void_p, c_void_p, c_int, c_int, c_int]
     regressor.refine_pose.restype = c_void_p
 
     ## search parameter

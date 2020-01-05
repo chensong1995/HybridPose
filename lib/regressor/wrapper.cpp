@@ -221,13 +221,17 @@ extern "C" {
 
 
   HybridPredictionContainer* initialize_pose(HybridPredictionContainer* predictions, 
-                                             PRInitPara* pi_para) {
+                                             PRInitPara* pi_para, 
+                                             int turn_on_kpt, 
+                                             int turn_on_edge, 
+                                             int turn_on_sym) {
     AffineXform3d pose;
     PoseRegression pr;
     PoseRegressionPara para;
 
-    para.gamma_edge = pi_para->gamma_edge;
-    para.gamma_sym = pi_para->gamma_sym;
+    para.gamma_edge = pi_para->gamma_edge * turn_on_edge;
+    para.gamma_sym = pi_para->gamma_sym * turn_on_sym;
+    para.gamma_kpts = para.gamma_kpts * turn_on_kpt;
 
     pr.InitializePose(*predictions, para, &pose);
 
@@ -241,13 +245,17 @@ extern "C" {
   }
 
   HybridPredictionContainer* refine_pose(HybridPredictionContainer* predictions,
-                                         PRRefinePara* pr_para) {
+                                         PRRefinePara* pr_para,
+                                         int turn_on_kpt, 
+                                         int turn_on_edge, 
+                                         int turn_on_sym) {
     AffineXform3d pose = *(predictions->GetRigidPose());;
     PoseRegression pr;
     PoseRegressionPara para;
 
-    para.beta_edge = pr_para->beta_edge;
-    para.beta_sym = pr_para->beta_sym;
+    para.beta_edge = pr_para->beta_edge * turn_on_edge;
+    para.beta_sym = pr_para->beta_sym * turn_on_sym;
+    para.beta_kpts = para.beta_kpts * turn_on_kpt;
     para.alpha_kpts = pr_para->alpha_kpts;
     para.alpha_edge = pr_para->alpha_edge;
     para.alpha_sym = pr_para->alpha_sym;
@@ -289,7 +297,7 @@ extern "C" {
     
     // set pose initial for validation set using searched parameters
     for (unsigned id = 0; id < data_size; id++) {
-      initialize_pose(&((*predictions_para)[id]), pi_para);
+      initialize_pose(&((*predictions_para)[id]), pi_para, 1, 1, 1);
     }
     return pi_para;
   }

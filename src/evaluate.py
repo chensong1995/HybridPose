@@ -2,7 +2,7 @@ import _init_paths
 import argparse
 import numpy as np
 import glob
-from lib.utils import compute_add_score, compute_adds_score
+from lib.utils import compute_add_score, compute_adds_score, compute_pose_error
 import pdb
 
 def parse_args():
@@ -83,3 +83,8 @@ if __name__ == '__main__':
                                (record['R_gt'], record['t_gt']),
                                (record['R_pred'], record['t_pred']))
     print('ADD(-S) score of final prediction is: {}'.format(score_pred))
+
+    R_err, t_err = compute_pose_error(diameter,
+                                     (record['R_gt'], record['t_gt']),
+                                     (record['R_pred'], record['t_pred']))
+    print(args.object_name + 'prediction rotation error is: {}, translation error is : {}'.format(R_err, t_err))

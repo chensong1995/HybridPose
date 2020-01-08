@@ -1,5 +1,5 @@
 # HybridPose: 6D Object Pose Estimation under Hybrid Representations
-This repository contains authors' implementation of [HybridPose: 6D Object Pose Estimation under Hybrid Representations](http://songc.me). Our implementation is based on [PVNet](https://github.com/zju3dv/pvnet).
+This repository contains authors' implementation of [HybridPose: 6D Object Pose Estimation under Hybrid Representations](https://arxiv.org/abs/2001.01869). Our implementation is based on [PVNet](https://github.com/zju3dv/pvnet).
 We warmly welcome any discussions related to our implementation and our paper. Please feel free to open an issue.
 
 ## Download

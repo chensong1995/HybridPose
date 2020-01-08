@@ -95,3 +95,16 @@ To evaluate ADD(-S) accuracy of predicted poses, please set the arguments in `sr
 ```
 python src/evaluate.py
 ```
+
+## Citation
+If you find our work useful in your research, please kindly make a citation using:
+```
+@misc{song2020hybridpose,
+    title={HybridPose: 6D Object Pose Estimation under Hybrid Representations},
+    author={Chen Song and Jiaru Song and Qixing Huang},
+    year={2020},
+    eprint={2001.01869},
+    archivePrefix={arXiv},
+    primaryClass={cs.CV}
+}
+```

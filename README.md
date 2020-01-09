@@ -3,11 +3,8 @@ This repository contains authors' implementation of [HybridPose: 6D Object Pose 
 We warmly welcome any discussions related to our implementation and our paper. Please feel free to open an issue.
 
 ## Introduction
-We introduce HybridPose, a novel 6D object pose estimation approach. HybridPose utilizes a hybrid intermediate representation to express different geometric information in the input image, including keypoints, edge vectors, and symmetry correspondences. Compared to a unitary representation, our hybrid representation allows pose regression to exploit more and diverse features when one type of predicted representation is inaccurate (e.g., because of occlusion). HybridPose leverages a robust regression module to filter out outliers in predicted intermediate representation. We show the robustness of HybridPose by demonstrating that all intermediate representations can be predicted by the same simple neural network without sacrificing the overall performance. Compared to state-of-the-art pose estimation approaches, HybridPose is comparable in running time and is significantly more accurate. For example, on Occlusion Linemod dataset, our method achieves a prediction speed of 30 fps with a mean ADD(-S) accuracy of 79.2%, representing a 67.4% improvement from the current state-of-the-art approach.
-
-![Approach overview](./assets/overview.png)
-
 HybridPose consists of intermediate representation prediction networks and a pose regression module. The prediction networks take an image as input, and output predicted keypoints, edge vectors, and symmetry correspondences. The pose regression module consists of a initialization sub-module and a refinement sub-module. The initialization sub-module solves a linear system with predicted intermediate representations to obtain an initial pose. The refinement sub-module utilizes GM robust norm to obtain the final pose prediction.
+![Approach overview](./assets/overview.png)
 
 ## Download
 ```

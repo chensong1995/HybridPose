@@ -1,6 +1,10 @@
 # HybridPose: 6D Object Pose Estimation under Hybrid Representations
-This repository contains authors' implementation of [HybridPose: 6D Object Pose Estimation under Hybrid Representations](http://songc.me). Our implementation is based on [PVNet](https://github.com/zju3dv/pvnet).
+This repository contains authors' implementation of [HybridPose: 6D Object Pose Estimation under Hybrid Representations](https://arxiv.org/abs/2001.01869). Our implementation is based on [PVNet](https://github.com/zju3dv/pvnet).
 We warmly welcome any discussions related to our implementation and our paper. Please feel free to open an issue.
+
+## Introduction
+HybridPose consists of intermediate representation prediction networks and a pose regression module. The prediction networks take an image as input, and output predicted keypoints, edge vectors, and symmetry correspondences. The pose regression module consists of a initialization sub-module and a refinement sub-module. The initialization sub-module solves a linear system with predicted intermediate representations to obtain an initial pose. The refinement sub-module utilizes GM robust norm to obtain the final pose prediction.
+![Approach overview](./assets/overview.png)
 
 ## Download
 ```
@@ -93,4 +97,17 @@ Running `src/train_core.py` now will save both ground truth and predicted poses 
 To evaluate ADD(-S) accuracy of predicted poses, please set the arguments in `src/evaluate.py` and run
 ```
 python src/evaluate.py
+```
+
+## Citation
+If you find our work useful in your research, please kindly make a citation using:
+```
+@misc{song2020hybridpose,
+    title={HybridPose: 6D Object Pose Estimation under Hybrid Representations},
+    author={Chen Song and Jiaru Song and Qixing Huang},
+    year={2020},
+    eprint={2001.01869},
+    archivePrefix={arXiv},
+    primaryClass={cs.CV}
+}
 ```

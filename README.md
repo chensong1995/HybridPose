@@ -36,7 +36,6 @@ python data/download_linemod.py
 python data/download_occlusion.py
 ```
 Let us then download our augumented labels to these two datasets. Our augumented labels include:
-* Blender meshes on Linemod objects: For some reasons, pose labels on Linemod are not aligned perfectly with the 3D models. After discussions with the authors of [PVNet](https://github.com/zju3dv/pvnet), we followed their advice and used Blender meshes to correct Linemod pose labels.
 * Keypoints: both 2D and 3D coordinates. These labels are generated using [FSP](https://github.com/zju3dv/pvnet/blob/master/lib/utils/data_utils.py).
 * Symmetry: Symmetry correspondences in 2D and the normal of symmetry plane in 3D. These labels are generated using [SymSeg](https://github.com/aecins/symseg).
 * Segmentation masks: On Linemod, we create segmentation masks by projecting 3D models. On Occlusion Linemod, we use the segmentation masks provided in [PVNet](https://github.com/zju3dv/pvnet).

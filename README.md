@@ -44,8 +44,9 @@ Let us then download our augumented labels to these two datasets. Our augumented
 * Symmetry: Symmetry correspondences in 2D and the normal of symmetry plane in 3D. These labels are generated using [SymSeg](https://github.com/aecins/symseg).
 * Segmentation masks: On Linemod, we create segmentation masks by projecting 3D models. On Occlusion Linemod, we use the segmentation masks provided in [PVNet](https://github.com/zju3dv/pvnet).
 
-They are uploaded here: [Linemod](https://drive.google.com/file/d/1f9-KEVtKprU0vNYWXjPSFhEoU32Vtlv2/view?usp=sharing), 
-[Occlusion Linemod](https://drive.google.com/file/d/1PItmDj7Go0OBnC1Lkvagz3RRB9qdJUIG/view?usp=sharing).
+They are uploaded here:
+* Google Drive: [Linemod](https://drive.google.com/file/d/1f9-KEVtKprU0vNYWXjPSFhEoU32Vtlv2/view?usp=sharing), [Occlusion Linemod](https://drive.google.com/file/d/1PItmDj7Go0OBnC1Lkvagz3RRB9qdJUIG/view?usp=sharing).
+* Tencent Weiyun: [Linemod](https://share.weiyun.com/5aJReIX), [Occlusion Linemod](https://share.weiyun.com/50i7KTb).
 
 The following commands unzip these labels to the correct directory:
 ```
@@ -65,7 +66,7 @@ If you use a different shell other than bash and fish, prepend "lib/regressor" t
 
 ## Pre-trained weights
 You can download our pre-trained weights below:
-* Linemod: [ape](https://drive.google.com/file/d/19Nl8AOER9brGDGUGu1WRwhdFBJNLymiu/view?usp=sharing),
+* Linemod (Google Drive): [ape](https://drive.google.com/file/d/19Nl8AOER9brGDGUGu1WRwhdFBJNLymiu/view?usp=sharing),
 [benchviseblue](https://drive.google.com/file/d/1nMLJtV3XsK60bGGE-zFA1dw34074yryf/view?usp=sharing),
 [cam](https://drive.google.com/file/d/1Sc0wx73E_DyrKe1N7DMl3qIRKSimIZoe/view?usp=sharing),
 [can](https://drive.google.com/file/d/1NTEc6BcTV69Li0XW-ZDD7aLMuIkY3RL5/view?usp=sharing),
@@ -78,7 +79,20 @@ You can download our pre-trained weights below:
 [iron](https://drive.google.com/file/d/1CtZfFycD90xcu3u6dEjoQa0ETY0RSJ5V/view?usp=sharing),
 [lamp](https://drive.google.com/file/d/1UYnDxdXs_XVNyz7QHeq3RIPU1Gw-df-r/view?usp=sharing),
 [phone](https://drive.google.com/file/d/1ArP9c7Z-CG2P9zvhreA4_jj0-e0i1TSF/view?usp=sharing)
-* Occlusion Linemod: [ape](https://drive.google.com/file/d/1JeBETMGgELrawzofO59j4OCpg-2tf3iy/view?usp=sharing),
+* Linemod (Tencent Weiyun): [ape](https://share.weiyun.com/5ifVe8J),
+[benchviseblue](https://share.weiyun.com/5BspKQW),
+[cam](https://share.weiyun.com/5pqwOhx),
+[can](https://share.weiyun.com/5jAxYqm),
+[cat](https://share.weiyun.com/5W8ncSc),
+[driller](https://share.weiyun.com/5IUIjpn),
+[duck](https://share.weiyun.com/5JMrfdR),
+[eggbox](https://share.weiyun.com/5Yjtn0D),
+[glue](https://share.weiyun.com/520JEaN),
+[holepuncher](https://share.weiyun.com/5oOkGKM),
+[iron](https://share.weiyun.com/5nCAiAJ),
+[lamp](https://share.weiyun.com/5rkmZKC),
+[phone](https://share.weiyun.com/5XaPpPq)
+* Occlusion Linemod (Google Drive): [ape](https://drive.google.com/file/d/1JeBETMGgELrawzofO59j4OCpg-2tf3iy/view?usp=sharing),
 [can](https://drive.google.com/file/d/1Cl47bGiPyodHNqITaxCadFAT97YP7nl9/view?usp=sharing),
 [cat](https://drive.google.com/file/d/1gDMwqPuFyKg_YW_PbqY_yT53dJEYYrqW/view?usp=sharing),
 [driller](https://drive.google.com/file/d/1iAvptsTtwHVp6bNNSRBl5QiVi3O8uDeo/view?usp=sharing),
@@ -86,6 +100,14 @@ You can download our pre-trained weights below:
 [eggbox](https://drive.google.com/file/d/1UKl6aSLRVZzbjI1b5yhxBRlavI8n_JMb/view?usp=sharing),
 [glue](https://drive.google.com/file/d/1JnABWWuNns_syYO-zPUBGViT_HWt0VAW/view?usp=sharing),
 [holepuncher](https://drive.google.com/file/d/1XGt5BvYEbVN67zZbdMaGBsaC2-pad4zv/view?usp=sharing)
+* Occlusion Linemod (Tencent Weiyun): [ape](https://share.weiyun.com/5t8BCmi),
+[can](https://share.weiyun.com/5IgRL6W),
+[cat](https://share.weiyun.com/5i50fIb),
+[driller](https://share.weiyun.com/52GAoma),
+[duck](https://share.weiyun.com/5pkx7dB),
+[eggbox](https://share.weiyun.com/5XBQ8IY),
+[glue](https://share.weiyun.com/5p2aIzV),
+[holepuncher](https://share.weiyun.com/5cR5b88)
 
 We have configured random seeds in src/train\_core.py and expect you to re-produce identical weights by running our training script. Our training uses two graphics cards with a batch size of 12.
 

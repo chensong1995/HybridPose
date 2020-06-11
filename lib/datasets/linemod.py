@@ -41,7 +41,6 @@ class LinemodDataset(Dataset):
         # pre-load data into memory
         self.pts2d = {}
         self.pts3d = {}
-        self.alignment_translation = {}
         self.normals = {}
         for object_name in self.object_names:
             # keypoints
@@ -53,16 +52,6 @@ class LinemodDataset(Dataset):
                                       object_name, 'keypoints_3d.npy')
             pts3d = np.float32(np.load(pts3d_name))
             self.pts3d[object_name] = pts3d
-            # alignment translation: useful to correct pose labels
-            orig_mesh_name = os.path.join(self.base_dir, 'original_dataset',
-                                          object_name, 'mesh.ply')
-            orig_point_cloud = self.read_3d_points(orig_mesh_name)
-            blender_mesh_name = os.path.join(self.base_dir, 'blender_meshes',
-                                             object_name, 'object_mesh.ply')
-            blender_point_cloud = self.read_3d_points(blender_mesh_name)
-            alignment_translation = \
-                    self.get_alignment_translation(orig_point_cloud, blender_point_cloud)
-            self.alignment_translation[object_name] = alignment_translation
             # symmetry plane normals
             normal_name = os.path.join(self.base_dir, 'symmetries',
                                        object_name, 'symmetries.txt')
@@ -92,12 +81,6 @@ class LinemodDataset(Dataset):
                 elif line.startswith('element face'):
                     in_mm = True
         return vertices
-
-    def get_alignment_translation(self, P_list, blender_P_list):
-        x_mean = np.mean(list(map(lambda x: x[0, 0], P_list))) - np.mean(list(map(lambda x: x[0, 0], blender_P_list)))
-        y_mean = np.mean(list(map(lambda x: x[1, 0], P_list))) - np.mean(list(map(lambda x: x[1, 0], blender_P_list)))
-        z_mean = np.mean(list(map(lambda x: x[2, 0], P_list))) - np.mean(list(map(lambda x: x[2, 0], blender_P_list)))
-        return np.array([[x_mean], [y_mean], [z_mean]], dtype=np.float32)
 
     def __len__(self):
         return self.total_length
@@ -184,7 +167,6 @@ class LinemodDataset(Dataset):
                 t_name = os.path.join(self.base_dir, 'original_dataset', object_name,
                                       'data', 'tra{}.tra'.format(local_idx))
                 t = self.read_translation(t_name)
-                t = t - self.alignment_translation[object_name]
                 # symmetry correspondences
                 sym_cor_name = os.path.join(self.base_dir, 'correspondences',
                                             object_name, 'cor{}.npy'.format(local_idx))

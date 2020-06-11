@@ -2,7 +2,7 @@
 This repository contains authors' implementation of [HybridPose: 6D Object Pose Estimation under Hybrid Representations](https://arxiv.org/abs/2001.01869). Our implementation is based on [PVNet](https://github.com/zju3dv/pvnet).
 We warmly welcome any discussions related to our implementation and our paper. Please feel free to open an issue.
 
-**News (June 11, 2020): We have fixed a bug in Linemod dataset labeling as pointed out by [JISock](https://github.com/JISock) in [this issue](https://github.com/chensong1995/HybridPose/issues/3), and [shanniruo](https://github.com/shanniruo) in [this issue](https://github.com/chensong1995/HybridPose/issues/25). A small offset was incorrectly added to the translation vectors on Linemod dataset. Links to new labels and pre-trained weights are updated below. Our bug fix leads to marginal improvement of average ADD(-S) accuracy: from 0.9450447652 to 0.945402139. Thank you, JISock and shanniruo!**
+**News (June 11, 2020):** We have fixed a bug in Linemod dataset labeling as pointed out by [JISock](https://github.com/JISock) in [this issue](https://github.com/chensong1995/HybridPose/issues/3), and [shanniruo](https://github.com/shanniruo) in [this issue](https://github.com/chensong1995/HybridPose/issues/25). A small offset was incorrectly added to the translation vectors on Linemod dataset. Links to new labels and pre-trained weights are updated below. Our bug fix leads to marginal improvement of average ADD(-S) accuracy: from 0.9450447652 to 0.945402139. Thank you, JISock and shanniruo!
 
 ## Introduction
 HybridPose consists of intermediate representation prediction networks and a pose regression module. The prediction networks take an image as input, and output predicted keypoints, edge vectors, and symmetry correspondences. The pose regression module consists of a initialization sub-module and a refinement sub-module. The initialization sub-module solves a linear system with predicted intermediate representations to obtain an initial pose. The refinement sub-module utilizes GM robust norm to obtain the final pose prediction.
@@ -111,7 +111,7 @@ You can download our pre-trained weights below:
 [glue](https://share.weiyun.com/5p2aIzV),
 [holepuncher](https://share.weiyun.com/5cR5b88)
 
-~We have configured random seeds in src/train\_core.py and expect you to re-produce identical weights by running our training script.~ It turns out that [Completely reproducible results are not guaranteed across PyTorch releases, individual commits or different platforms. Furthermore, results need not be reproducible between CPU and GPU executions, even when using identical seeds.](https://pytorch.org/docs/stable/notes/randomness.html) Our training uses two graphics cards with a batch size of 12.
+~We have configured random seeds in src/train\_core.py and expect you to re-produce identical weights by running our training script.~ It turns out that [completely reproducible results are not guaranteed across PyTorch releases, individual commits or different platforms. Furthermore, results need not be reproducible between CPU and GPU executions, even when using identical seeds.](https://pytorch.org/docs/stable/notes/randomness.html) Our training uses two graphics cards with a batch size of 12.
 
 After you download the pre-trained weights, unzip them somewhere and configure `--load_dir` in `src/train_core.py` to the unzipped weights (e.g. `saved_weights/occlusion_linemod/ape/checkpoints/0.02/499`).
 

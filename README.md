@@ -2,6 +2,8 @@
 This repository contains authors' implementation of [HybridPose: 6D Object Pose Estimation under Hybrid Representations](https://arxiv.org/abs/2001.01869). Our implementation is based on [PVNet](https://github.com/zju3dv/pvnet).
 We warmly welcome any discussions related to our implementation and our paper. Please feel free to open an issue.
 
+**Important notice:** We were informed by some readers that the training/testing split used in our experiment is inconsistent with baseline models. The comparison to baseline methods is therefore controversial. I am actively working on re-evaluating our approach. The updates will be posted to both this GitHub directory. At this point, I kindly request readers to focus on the general architecture of our method, and the relative strength of hybrid representations as demonstrated by the ablation study. I apologize for the inconvenience this may have caused.
+
 **News (June 11, 2020):** We have fixed a bug in Linemod dataset labeling as pointed out by [JISock](https://github.com/JISock) in [this issue](https://github.com/chensong1995/HybridPose/issues/3), and [shanniruo](https://github.com/shanniruo) in [this issue](https://github.com/chensong1995/HybridPose/issues/25). A small offset was incorrectly added to the translation vectors on Linemod dataset. Links to new labels and pre-trained weights are updated below. Our bug fix leads to marginal improvement of average ADD(-S) accuracy: from 0.9450447652 to 0.945402139. Thank you, JISock and shanniruo!
 
 ## Introduction

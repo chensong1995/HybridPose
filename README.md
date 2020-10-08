@@ -47,8 +47,8 @@ Let us then download our augumented labels to these two datasets. Our augumented
 * Segmentation masks: On Linemod, we create segmentation masks by projecting 3D models. On Occlusion Linemod, we use the segmentation masks provided in [PVNet](https://github.com/zju3dv/pvnet).
 
 They are uploaded here:
-* Google Drive: [Linemod](https://drive.google.com/file/d/1oSM-5ily_vkQ28KVpW7q5FyY67A7Jt1N/view?usp=sharing), [Occlusion Linemod](https://drive.google.com/file/d/1PItmDj7Go0OBnC1Lkvagz3RRB9qdJUIG/view?usp=sharing).
-* Tencent Weiyun: [Linemod](https://share.weiyun.com/OPxLstUw), [Occlusion Linemod](https://share.weiyun.com/50i7KTb).
+* Google Drive: [Linemod](https://drive.google.com/file/d/1wDdWq9hYoAhV6yb3ARD6_LwN4uDCYu0n/view?usp=sharing), [Occlusion Linemod](https://drive.google.com/file/d/1PItmDj7Go0OBnC1Lkvagz3RRB9qdJUIG/view?usp=sharing).
+* Tencent Weiyun: [Linemod](https://share.weiyun.com/VOf5yOZI), [Occlusion Linemod](https://share.weiyun.com/50i7KTb).
 
 The following commands unzip these labels to the correct directory:
 ```
@@ -85,53 +85,37 @@ env LD_LIBRARY_PATH="lib/regressor:$LD_LIBRARY_PATH" python src/train_core.py
 If you use a different shell other than bash and fish, prepend "lib/regressor" to LD\_LIBRARY\_PATH and run `python src/train_core.py`.
 
 ## Pre-trained weights
-You can download our pre-trained weights below:
-* Linemod (Google Drive): [ape](https://drive.google.com/file/d/1LOUfdaffqMzocuTDMG6rMtJgZyQiG2hR/view?usp=sharing),
-[benchviseblue](https://drive.google.com/file/d/1nJ8H4s0CgbVK_qJJFT6_zZJX-glCHwkr/view?usp=sharing),
-[cam](https://drive.google.com/file/d/1EgUy8tPDl4EwiIrLP_ZGBzTG2xFEWktw/view?usp=sharing),
-[can](https://drive.google.com/file/d/146c2swIc7YhCY47b-GN7oCOyyBXm4RYH/view?usp=sharing),
-[cat](https://drive.google.com/file/d/1i6fO0e-ixvG37nbQde_71WpofNngYeQt/view?usp=sharing),
-[driller](https://drive.google.com/file/d/1SWk6Nh36BGnYKGxAPmRV3y3TfpWLQesu/view?usp=sharing),
-[duck](https://drive.google.com/file/d/12nr6s9sJ6o3MlswsNm1DAZNwiDsfNkCr/view?usp=sharing),
-[eggbox](https://drive.google.com/file/d/1YHDXB4vlEAwOB3vOUnRbO2XALlFc1kEF/view?usp=sharing),
-[glue](https://drive.google.com/file/d/1hfHUJA17hJ0ZDQdq5gLVw2Q6Vm7xDbY1/view?usp=sharing),
-[holepuncher](https://drive.google.com/file/d/1SGAjHHCGrNNgSigN_Db7quE8LIIMmvBO/view?usp=sharing),
-[iron](https://drive.google.com/file/d/1p5hXKpBG4fBrV5vwIoNnIA83E8fFrpfa/view?usp=sharing),
-[lamp](https://drive.google.com/file/d/1smye1JnM6kS0PNsAZkeuo5LfU7FPl2pD/view?usp=sharing),
-[phone](https://drive.google.com/file/d/14kRJ2VeSfEd1gxOLrUzpRJoPsycKKjQt/view?usp=sharing)
-* Linemod (Tencent Weiyun): [ape](https://share.weiyun.com/kD3EgEsn),
-[benchviseblue](https://share.weiyun.com/Fd4kovRM),
-[cam](https://share.weiyun.com/wwZpx9Kb),
-[can](https://share.weiyun.com/bqIuvUUW),
-[cat](https://share.weiyun.com/w1wsESru),
-[driller](https://share.weiyun.com/Hdt4u9yt),
-[duck](https://share.weiyun.com/Rg33nf1s),
-[eggbox](https://share.weiyun.com/VKRXInIk),
-[glue](https://share.weiyun.com/xBFlmV5d),
-[holepuncher](https://share.weiyun.com/pr8oCZFF),
-[iron](https://share.weiyun.com/EO3TQzJO),
-[lamp](https://share.weiyun.com/sUrdYx5R),
-[phone](https://share.weiyun.com/EGOvgGlH)
-* Occlusion Linemod (Google Drive): [ape](https://drive.google.com/file/d/1JeBETMGgELrawzofO59j4OCpg-2tf3iy/view?usp=sharing),
-[can](https://drive.google.com/file/d/1Cl47bGiPyodHNqITaxCadFAT97YP7nl9/view?usp=sharing),
-[cat](https://drive.google.com/file/d/1gDMwqPuFyKg_YW_PbqY_yT53dJEYYrqW/view?usp=sharing),
-[driller](https://drive.google.com/file/d/1iAvptsTtwHVp6bNNSRBl5QiVi3O8uDeo/view?usp=sharing),
-[duck](https://drive.google.com/file/d/1GwmhyWG4czIsVcCRyWA19ZEZfTzEN2Wo/view?usp=sharing),
-[eggbox](https://drive.google.com/file/d/1UKl6aSLRVZzbjI1b5yhxBRlavI8n_JMb/view?usp=sharing),
-[glue](https://drive.google.com/file/d/1JnABWWuNns_syYO-zPUBGViT_HWt0VAW/view?usp=sharing),
-[holepuncher](https://drive.google.com/file/d/1XGt5BvYEbVN67zZbdMaGBsaC2-pad4zv/view?usp=sharing)
-* Occlusion Linemod (Tencent Weiyun): [ape](https://share.weiyun.com/5t8BCmi),
-[can](https://share.weiyun.com/5IgRL6W),
-[cat](https://share.weiyun.com/5i50fIb),
-[driller](https://share.weiyun.com/52GAoma),
-[duck](https://share.weiyun.com/5pkx7dB),
-[eggbox](https://share.weiyun.com/5XBQ8IY),
-[glue](https://share.weiyun.com/5p2aIzV),
-[holepuncher](https://share.weiyun.com/5cR5b88)
+You can download our pre-trained weights below. We use train one set of weights on Linemod, and test on both Linemod and Occlusion Linemod:
+* Google Drive: [ape](https://drive.google.com/file/d/1i9u20zcZvzxH3zp1x5b_p3r7CIRZjPtY/view?usp=sharing),
+[benchviseblue](https://drive.google.com/file/d/1JBK-kigQEmYVW4xBZPlvgKFc4018YHDN/view?usp=sharing),
+[cam](https://drive.google.com/file/d/1W8DGT4oBR4O7TV7CLoKJPef3GQslb37R/view?usp=sharing),
+[can](https://drive.google.com/file/d/1KaNrV0REV7ErqPkMX8tqkojEKe7IUNLb/view?usp=sharing),
+[cat](https://drive.google.com/file/d/1F77YzL4-FpWAPJJIVnkpyRrtO8uDNVq5/view?usp=sharing),
+[driller](https://drive.google.com/file/d/1BARke8MZf7GvQpa7YQnBpI4_0je8hmy8/view?usp=sharing),
+[duck](https://drive.google.com/file/d/1XeOqyY7WWxUK79GRB8bp4EkoIO1lvjlF/view?usp=sharing),
+[eggbox](https://drive.google.com/file/d/1nQZYc1pnV9HeR2-p-RBTUz_KV8QA8Y9B/view?usp=sharing),
+[glue](https://drive.google.com/file/d/1bBJ5M0pMQfzZ-r9gH_wa9XGvf7fidYlz/view?usp=sharing),
+[holepuncher](https://drive.google.com/file/d/1YEL_2FsxLgUKTNbvoRCiwitLPQoVATnx/view?usp=sharing),
+[iron](https://drive.google.com/file/d/1T_cKOKNdwMz8ex8TtQHZxmf8SmFgKSr4/view?usp=sharing),
+[lamp](https://drive.google.com/file/d/1c2uiQ2kIW2zCNyswmNB7DbKtWF9pp4PS/view?usp=sharing),
+[phone](https://drive.google.com/file/d/15DCtOMxIlYU3gYJ5pFfGhwh-VNsMmw_x/view?usp=sharing)
+* Tencent Weiyun: [ape](https://share.weiyun.com/yOCM20YC),
+[benchviseblue](https://share.weiyun.com/iNCkC7iN),
+[cam](https://share.weiyun.com/4jE1JxQK),
+[can](https://share.weiyun.com/HuVBksHq),
+[cat](https://share.weiyun.com/WIAUu2kc),
+[driller](https://share.weiyun.com/oYfPFsj6),
+[duck](https://share.weiyun.com/5liVTjld),
+[eggbox](https://share.weiyun.com/CjQyLtbt),
+[glue](https://share.weiyun.com/Xq7IlKf4),
+[holepuncher](https://share.weiyun.com/t2eA816n),
+[iron](https://share.weiyun.com/cPzMB2Rx),
+[lamp](https://share.weiyun.com/W5YBK8UA),
+[phone](https://share.weiyun.com/4gDBsjls)
 
-~We have configured random seeds in src/train\_core.py and expect you to re-produce identical weights by running our training script.~ It turns out that [completely reproducible results are not guaranteed across PyTorch releases, individual commits or different platforms. Furthermore, results need not be reproducible between CPU and GPU executions, even when using identical seeds.](https://pytorch.org/docs/stable/notes/randomness.html) Our training uses two graphics cards with a batch size of 12.
+~We have configured random seeds in src/train\_core.py and expect you to re-produce identical weights by running our training script.~ It turns out that [completely reproducible results are not guaranteed across PyTorch releases, individual commits or different platforms. Furthermore, results need not be reproducible between CPU and GPU executions, even when using identical seeds.](https://pytorch.org/docs/stable/notes/randomness.html) Also, the randomness in the PVNet synthetic data generation will create some difference in training outcome. Our training uses two graphics cards with a batch size of 10.
 
-After you download the pre-trained weights, unzip them somewhere and configure `--load_dir` in `src/train_core.py` to the unzipped weights (e.g. `saved_weights/occlusion_linemod/ape/checkpoints/0.02/499`).
+After you download the pre-trained weights, unzip them somewhere and configure `--load_dir` in `src/train_core.py` to the unzipped weights (e.g. `saved_weights/linemod/ape/checkpoints/0.001/199`).
 
 Running `src/train_core.py` now will save both ground truth and predicted poses to a directory called `output`.
 

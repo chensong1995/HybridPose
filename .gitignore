@@ -5,7 +5,10 @@ __pycache__/
 build/
 data/linemod
 data/occlusion_linemod
+data/blender_linemod
+data/fuse_linemod
 data/temp
 saved_weights
 output
+logs/
 *.sh

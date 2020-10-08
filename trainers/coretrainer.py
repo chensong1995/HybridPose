@@ -416,17 +416,14 @@ class CoreTrainer(object):
             xs = graph_pred[i, 0][mask_pred == 1.]
             ys = graph_pred[i, 1][mask_pred == 1.]
             vec_pred[i] = [xs.mean(), ys.mean()]
-            if self.args.dataset == 'linemod':
+            try:
                 cov = np.cov(xs, ys)
                 cov = (cov + cov.transpose()) / 2 # ensure the covariance matrix is symmetric
                 v, u = np.linalg.eig(cov)
                 v = np.matrix(np.diag(1. / np.sqrt(v)))
                 edge_inv_half_var[i] = u * v * u.transpose()
-            elif self.args.dataset == 'occlusion_linemod':
+            except:
                 edge_inv_half_var[i] = np.eye(2)
-            else:
-                # dataset not supported
-                pdb.set_trace()
         vec_pred = np.array(K_inv[:2, :2] * np.matrix(vec_pred).transpose()).transpose()
         edge_inv_half_var = edge_inv_half_var.reshape((n_edges, 4))
         regressor.set_vec_pred(predictions,
@@ -527,9 +524,9 @@ class CoreTrainer(object):
         pr_para = regressor.search_pose_refine(predictions_para, poses_para, para_id, diameter)
         return pr_para, pi_para
 
-    def generate_data(self, val_size=20):
+    def generate_data(self, val_loader, val_size=100):
         self.model.eval()
-        camera_intrinsic = self.test_loader.dataset.dataset.camera_intrinsic
+        camera_intrinsic = self.test_loader.dataset.camera_intrinsic
         n_examples = len(self.test_loader.dataset) - val_size
         test_set = {
                 'object_name': [],
@@ -563,7 +560,8 @@ class CoreTrainer(object):
         # ground-truth poses in the val set
         poses_para = regressor.new_container_pose()
         with torch.no_grad():
-            for i_batch, batch in enumerate(self.test_loader):
+            # search parameters
+            for i_batch, batch in enumerate(val_loader):
                 base_idx = self.args.batch_size * i_batch
                 if cuda:
                     batch['image'] = batch['image'].cuda()
@@ -602,6 +600,25 @@ class CoreTrainer(object):
                                                             batch['normal'][i].numpy(),
                                                             read_diameter(self.args.object_name),
                                                             val_set)
+                        break
+            # prediction
+            for i_batch, batch in enumerate(self.test_loader):
+                base_idx = self.args.batch_size * i_batch
+                if cuda:
+                    batch['image'] = batch['image'].cuda()
+                    batch['sym_cor'] = batch['sym_cor'].cuda()
+                    batch['mask'] = batch['mask'].cuda()
+                    batch['pts2d_map'] = batch['pts2d_map'].cuda()
+                    batch['graph'] = batch['graph'].cuda()
+                sym_cor_pred, mask_pred, pts2d_map_pred, graph_pred, sym_cor_loss, mask_loss, pts2d_loss, graph_loss = \
+                        self.model(batch['image'], batch['sym_cor'], batch['mask'], batch['pts2d_map'], batch['graph'])
+                mask_pred[mask_pred > 0.5] = 1.
+                mask_pred[mask_pred <= 0.5] = 0.
+                pts2d_pred_loc, pts2d_pred_var = self.vote_keypoints(pts2d_map_pred, mask_pred)
+                mask_pred = mask_pred.detach().cpu().numpy()
+                for i in range(batch['image'].shape[0]):
+                    R = batch['R'].numpy()
+                    t = batch['t'].numpy()
                     # regress pose: test set starts from the `val_size`^{th} example
                     # save ground-truth information
                     test_set['object_name'] += batch['object_name'][i:]

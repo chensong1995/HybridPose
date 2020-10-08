@@ -7,6 +7,10 @@ import argparse
 import random
 from lib.datasets.linemod import LinemodDataset
 from lib.datasets.occlusion_linemod import OcclusionLinemodDataset
+from lib.datasets.blender_linemod import BlenderLinemodDataset
+from lib.datasets.fuse_linemod import FuseLinemodDataset
+from lib.datasets.sampler import ImageSizeBatchSampler
+from lib.datasets.concat import ConcatDataset
 from lib.model_repository import Resnet18_8s
 from lib.utils import *
 from trainers.coretrainer import CoreTrainer
@@ -17,17 +21,17 @@ cuda = torch.cuda.is_available()
 def parse_args():
     parser = argparse.ArgumentParser()
     # training
-    parser.add_argument('--batch_size', type=int, default=12)
-    parser.add_argument('--n_epochs', type=int, default=500)
-    parser.add_argument('--lr', type=float, default=0.02)
+    parser.add_argument('--batch_size', type=int, default=10)
+    parser.add_argument('--n_epochs', type=int, default=200)
+    parser.add_argument('--lr', type=float, default=0.001)
     parser.add_argument('--lambda_sym_cor', type=float, default=0.1)
     parser.add_argument('--lambda_mask', type=float, default=1.0)
     parser.add_argument('--lambda_pts2d', type=float, default=10.0)
     parser.add_argument('--lambda_graph', type=float, default=0.1)
     parser.add_argument('--object_name', type=str, default='ape')
-    parser.add_argument('--dataset', type=str, default='occlusion_linemod', choices=['linemod', 'occlusion_linemod'])
-    parser.add_argument('--save_dir', type=str, default='saved_weights/occlusion_linemod/ape')
-    parser.add_argument('--load_dir', type=str, default='saved_weights/occlusion_linemod/ape/checkpoints/0.02/499')
+    parser.add_argument('--dataset', type=str, default='linemod', choices=['linemod', 'occlusion_linemod'])
+    parser.add_argument('--save_dir', type=str, default='saved_weights/linemod/ape')
+    parser.add_argument('--load_dir', type=str, default=None)
     parser.add_argument('--test_every', type=int, default=20)
     parser.add_argument('--save_every', type=int, default=20)
     parser.add_argument('--num_keypoints', type=int, default=8)
@@ -47,21 +51,32 @@ def initialize(args):
 
 def setup_loaders(args):
     if args.dataset == 'linemod':
-        full_set = LinemodDataset(object_name=args.object_name)
+        linemod_train_set = LinemodDataset(object_name=args.object_name, split='train', augment=True, occlude=False)
+        blender_set = BlenderLinemodDataset(object_name=args.object_name, augment=True, occlude=False)
+        fuse_set = FuseLinemodDataset(object_name=args.object_name, augment=True)
+        test_set = LinemodDataset(object_name=args.object_name, split='test')
+        val_set = LinemodDataset(object_name=args.object_name, split='trainval', augment=False, occlude=False)
     elif args.dataset == 'occlusion_linemod':
-        full_set = OcclusionLinemodDataset(object_name=args.object_name)
+        linemod_train_set = LinemodDataset(object_name=args.object_name, split='train', augment=True, occlude=False)
+        blender_set = BlenderLinemodDataset(object_name=args.object_name, augment=True, occlude=False)
+        fuse_set = FuseLinemodDataset(object_name=args.object_name, augment=True)
+        test_set = OcclusionLinemodDataset(object_name=args.object_name)
+        val_set = BlenderLinemodDataset(object_name=args.object_name, augment=False, occlude=False, split='val')
     else:
         raise ValueError('Invalid dataset {}'.format(args.dataset))
-    train_size = int(0.8 * len(full_set))
-    test_size = len(full_set) - train_size
-    train_set, test_set = torch.utils.data.random_split(full_set, [train_size, test_size])
+    train_set = ConcatDataset([linemod_train_set, blender_set, fuse_set])
+    train_sampler = torch.utils.data.sampler.RandomSampler(train_set)
+    train_batch_sampler = ImageSizeBatchSampler(train_sampler, args.batch_size)
     train_loader = torch.utils.data.DataLoader(train_set,
-                                               batch_size=args.batch_size,
-                                               shuffle=True)
+                                               num_workers=8,
+                                               batch_sampler=train_batch_sampler)
     test_loader = torch.utils.data.DataLoader(test_set,
                                               batch_size=args.batch_size,
                                               shuffle=False)
-    return train_loader, test_loader
+    val_loader = torch.utils.data.DataLoader(val_set,
+                                             batch_size=args.batch_size,
+                                             shuffle=True)
+    return train_loader, test_loader, val_loader
 
 def setup_model(args):
     model = Resnet18_8s(num_keypoints=args.num_keypoints)
@@ -83,7 +98,7 @@ def adjust_lr(optimizer, lr):
 if __name__ == '__main__':
     args = parse_args()
     initialize(args)
-    train_loader, test_loader = setup_loaders(args)
+    train_loader, test_loader, val_loader = setup_loaders(args)
     model, optimizer, start_epoch = setup_model(args)
     trainer = CoreTrainer(model,
                           optimizer,
@@ -96,10 +111,4 @@ if __name__ == '__main__':
             trainer.test(epoch)
         if (epoch + 1) % args.save_every == 0:
             trainer.save_model(epoch)
-            os.system('rm -r {}'.format(os.path.join(args.save_dir,
-                                                     'checkpoints',
-                                                     str(args.lr),
-                                                     str(epoch - args.save_every))))
-        if epoch == 200:
-            adjust_lr(optimizer, args.lr / 10)
-    trainer.generate_data()
+    trainer.generate_data(val_loader)

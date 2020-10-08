@@ -56,6 +56,24 @@ unzip data/temp/linemod_labels.zip -d data/linemod
 unzip data/temp/occlusion_labels.zip -d data/occlusion_linemod
 ```
 
+We also use the [synthetic data from PVNet](https://github.com/zju3dv/pvnet-rendering/). Please generate blender rendering and fuse data using their code.  After data generation, please place blender data in `data/blender_linemod`, and fuse data in `data/fuse_linemod`. The directory structure should look like this:
+
+```
+data
+  |-- blender_linemod
+  |         |---------- ape
+  |         |---------- benchviseblue
+  |         |---------- cam
+  |         |---------- ... (other objects)
+  |-- fuse_linemod
+  |         |---------- ape
+  |         |---------- benchviseblue
+  |         |---------- cam
+  |         |---------- ... (other objects)
+```
+
+After that, please use `data/label.py` and `data/label_fuse.py` to create intermediate representation labels blender and fuse data, respectively.
+
 ## Training
 Please set the arguments in src/train\_core.py execute the following command (note that we need to set LD\_LIBRARY\_PATH for the pose regressor):
 ```

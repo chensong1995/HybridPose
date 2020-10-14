@@ -61,7 +61,7 @@ def setup_loaders(args):
         blender_set = BlenderLinemodDataset(object_name=args.object_name, augment=True, occlude=False)
         fuse_set = FuseLinemodDataset(object_name=args.object_name, augment=True)
         test_set = OcclusionLinemodDataset(object_name=args.object_name)
-        val_set = BlenderLinemodDataset(object_name=args.object_name, augment=False, occlude=False, split='val')
+        val_set = LinemodDataset(object_name=args.object_name, split='trainval', augment=False, occlude=False)
     else:
         raise ValueError('Invalid dataset {}'.format(args.dataset))
     train_set = ConcatDataset([linemod_train_set, blender_set, fuse_set])

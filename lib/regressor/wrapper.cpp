@@ -314,7 +314,7 @@ extern "C" {
   vector<HybridPredictionContainer>* new_container_para() {
     // a vector of intermediate predictions for N=20 examples in the val set
     vector<HybridPredictionContainer>* hpc_para = new vector<HybridPredictionContainer>();   
-    (*hpc_para).resize(100);
+    (*hpc_para).resize(50);
 
     int start_id[] = {2, 3, 4, 5, 6, 7, 8, 3, 4, 5, 6, 7, 8, 4, 5, 6, 7, 8, 5, 6, 7, 8, 6, 7, 8, 7, 8, 8};
     int   end_id[] = {1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 6, 6, 7};        
@@ -333,7 +333,7 @@ extern "C" {
   vector<AffineXform3d>* new_container_pose() {    
     // a vector of ground-truth poses for N=20 exmaples in the val set
     vector<AffineXform3d>* poses = new vector<AffineXform3d>();   
-    (*poses).resize(100);
+    (*poses).resize(50);
     return poses;
   }
 

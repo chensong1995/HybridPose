@@ -524,10 +524,10 @@ class CoreTrainer(object):
         pr_para = regressor.search_pose_refine(predictions_para, poses_para, para_id, diameter)
         return pr_para, pi_para
 
-    def generate_data(self, val_loader, val_size=100):
+    def generate_data(self, val_loader, val_size=50):
         self.model.eval()
         camera_intrinsic = self.test_loader.dataset.camera_intrinsic
-        n_examples = len(self.test_loader.dataset) - val_size
+        n_examples = len(self.test_loader.dataset)
         test_set = {
                 'object_name': [],
                 'local_idx': [],
@@ -561,7 +561,10 @@ class CoreTrainer(object):
         poses_para = regressor.new_container_pose()
         with torch.no_grad():
             # search parameters
+            keep_searching = True
             for i_batch, batch in enumerate(val_loader):
+                if not keep_searching:
+                    break
                 base_idx = self.args.batch_size * i_batch
                 if cuda:
                     batch['image'] = batch['image'].cuda()
@@ -589,8 +592,6 @@ class CoreTrainer(object):
                         val_set['mask_pred'].append(mask_pred[i][0]) 
                         val_set['R_gt'].append(R[i])
                         val_set['t_gt'].append(t[i])
-                        # skip pose regression: first `val_size` examples are in the val set
-                        continue
                     elif (base_idx + i) == val_size:
                         # search hyper-parameters of both initialization and refinement sub-modules
                         pr_para, pi_para = self.search_para(regressor,
@@ -600,6 +601,7 @@ class CoreTrainer(object):
                                                             batch['normal'][i].numpy(),
                                                             read_diameter(self.args.object_name),
                                                             val_set)
+                        keep_searching = False
                         break
             # prediction
             for i_batch, batch in enumerate(self.test_loader):
@@ -623,8 +625,8 @@ class CoreTrainer(object):
                     # save ground-truth information
                     test_set['object_name'] += batch['object_name'][i:]
                     test_set['local_idx'] += batch['local_idx'].numpy()[i:].tolist()
-                    test_set['R_gt'][base_idx + i - val_size] = R[i]
-                    test_set['t_gt'][base_idx + i - val_size] = t[i]
+                    test_set['R_gt'][base_idx + i] = R[i]
+                    test_set['t_gt'][base_idx + i] = t[i]
                     # save predicted information
                     R_pred, t_pred, R_init, t_init = self.regress_pose(regressor,
                                                                        predictions,
@@ -638,10 +640,10 @@ class CoreTrainer(object):
                                                                        sym_cor_pred[i].detach().cpu().numpy(),
                                                                        mask_pred[i][0],
                                                                        batch['normal'][i].numpy())
-                    test_set['R_pred'][base_idx + i - val_size] = R_pred
-                    test_set['t_pred'][base_idx + i - val_size] = t_pred
-                    test_set['R_init'][base_idx + i - val_size] = R_init
-                    test_set['t_init'][base_idx + i - val_size] = t_init
+                    test_set['R_pred'][base_idx + i] = R_pred
+                    test_set['t_pred'][base_idx + i] = t_pred
+                    test_set['R_init'][base_idx + i] = R_init
+                    test_set['t_init'][base_idx + i] = t_init
             os.makedirs('output/{}'.format(self.args.dataset), exist_ok=True)
             np.save('output/{}/test_set_{}.npy'.format(self.args.dataset, self.args.object_name), test_set)
             print('saved')

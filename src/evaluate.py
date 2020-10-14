@@ -2,13 +2,13 @@ import _init_paths
 import argparse
 import numpy as np
 import glob
-from lib.utils import compute_add_score, compute_adds_score, compute_pose_error
+from lib.utils import compute_add_score, compute_adds_score
 import pdb
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--object_name', type=str, default='glue')
-    parser.add_argument('--prediction_file', type=str, default='output/linemod/test_set_glue.npy')
+    parser.add_argument('--object_name', type=str, default='ape')
+    parser.add_argument('--prediction_file', type=str, default='output/occlusion_linemod/test_set_ape_40.npy')
     args = parser.parse_args()
     return args
 
@@ -55,7 +55,6 @@ if __name__ == '__main__':
         compute_score = compute_adds_score
     else:
         compute_score = compute_add_score
-        '''
     score_init = compute_score(pts3d,
                                diameter,
                                (record['R_gt'], record['t_gt']),
@@ -66,8 +65,3 @@ if __name__ == '__main__':
                                (record['R_gt'], record['t_gt']),
                                (record['R_pred'], record['t_pred']))
     print('ADD(-S) score of final prediction is: {}'.format(score_pred))
-'''
-    R_err, t_err = compute_pose_error(diameter,
-                                     (record['R_gt'], record['t_gt']),
-                                     (record['R_pred'], record['t_pred']))
-    print(args.object_name + 'prediction rotation error is: {} , translation error is : {}'.format(R_err, t_err))

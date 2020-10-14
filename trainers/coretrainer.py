@@ -424,6 +424,7 @@ class CoreTrainer(object):
                 edge_inv_half_var[i] = u * v * u.transpose()
             except:
                 edge_inv_half_var[i] = np.eye(2)
+            edge_inv_half_var[i] = np.eye(2)
         vec_pred = np.array(K_inv[:2, :2] * np.matrix(vec_pred).transpose()).transpose()
         edge_inv_half_var = edge_inv_half_var.reshape((n_edges, 4))
         regressor.set_vec_pred(predictions,
@@ -453,13 +454,29 @@ class CoreTrainer(object):
                                       symmetry_weight.ctypes,
                                       n_symmetry)  
 
+        # set initial pose calculated by EPnP for ablation study        
+        pts2d_ = np.float64(pts2d_pred_loc)
+        pts3d_ = np.float64(pts3d)
+        dist_coeffs = np.zeros((5, 1))
+        retval, rvec, tvec = cv2.solvePnP(pts3d_.reshape((-1, 1, 3)),
+                                          pts2d_.reshape((-1, 1, 2)),
+                                          np.float64(np.linalg.inv(K_inv)),
+                                          dist_coeffs,
+                                          flags=cv2.SOLVEPNP_EPNP)
+        r = cv2.Rodrigues(rvec)[0]
+        pose_init = np.zeros((4, 3), dtype=np.float32)
+        pose_init[0] = tvec.transpose()[0]
+        pose_init[1:] = r.transpose()
+        regressor.set_pose(predictions, get_2d_ctypes(pose_init)) 
+        return r, tvec.reshape((3,1))       
+        
     def regress_pose(self, regressor, predictions, pr_para, pi_para, K_inv, pts3d, pts2d_pred_loc, pts2d_pred_var, graph_pred, sym_cor_pred, mask_pred, normal_gt):
         if mask_pred.sum() == 0:
             # object is not detected
             R = np.eye(3, dtype=np.float32)
             t = np.zeros((3, 1), dtype=np.float32)
             return R, t, R, t
-        self.fill_intermediate_predictions(regressor,
+        R_init, t_init = self.fill_intermediate_predictions(regressor,
                                            predictions,
                                            K_inv,
                                            pts3d,
@@ -469,7 +486,8 @@ class CoreTrainer(object):
                                            sym_cor_pred,
                                            mask_pred,
                                            normal_gt)
-        # initialize pose
+        # initialize pose: pose initial submodule is closed because ablation study uses EPnP as pose initial
+        '''
         predictions = regressor.initialize_pose(predictions, 
                                                 pi_para, 
                                                 self.args.use_keypoint, 
@@ -479,6 +497,7 @@ class CoreTrainer(object):
         regressor.get_pose(predictions, get_2d_ctypes(pose_init))
         R_init = pose_init[1:].transpose()
         t_init = pose_init[0].reshape((3, 1))
+        '''
         # refine pose
         predictions = regressor.refine_pose(predictions, pr_para,
                                             self.args.use_keypoint, 
@@ -499,7 +518,7 @@ class CoreTrainer(object):
                 continue
             predictions = regressor.get_prediction_container(predictions_para, para_id)
             # fill intermediate predictions
-            self.fill_intermediate_predictions(regressor,
+            _, _ = self.fill_intermediate_predictions(regressor,
                                                predictions,
                                                K_inv,
                                                val_set['pts3d'][data_id],
@@ -523,7 +542,7 @@ class CoreTrainer(object):
         pi_para = regressor.search_pose_initial(predictions_para, poses_para, para_id, diameter)
         pr_para = regressor.search_pose_refine(predictions_para, poses_para, para_id, diameter)
         return pr_para, pi_para
-
+        
     def generate_data(self, val_loader, val_size=50):
         self.model.eval()
         camera_intrinsic = self.test_loader.dataset.camera_intrinsic
@@ -617,7 +636,7 @@ class CoreTrainer(object):
                 mask_pred[mask_pred > 0.5] = 1.
                 mask_pred[mask_pred <= 0.5] = 0.
                 pts2d_pred_loc, pts2d_pred_var = self.vote_keypoints(pts2d_map_pred, mask_pred)
-                mask_pred = mask_pred.detach().cpu().numpy()
+                mask_pred = mask_pred.detach().cpu().numpy()     
                 for i in range(batch['image'].shape[0]):
                     R = batch['R'].numpy()
                     t = batch['t'].numpy()
@@ -645,7 +664,8 @@ class CoreTrainer(object):
                     test_set['R_init'][base_idx + i] = R_init
                     test_set['t_init'][base_idx + i] = t_init
             os.makedirs('output/{}'.format(self.args.dataset), exist_ok=True)
-            np.save('output/{}/test_set_{}.npy'.format(self.args.dataset, self.args.object_name), test_set)
+            np.save('output/{}/test_set_{}_{}{}{}.npy'.format(self.args.dataset,
+                    self.args.object_name, self.args.use_keypoint, self.args.use_edge, self.args.use_symmetry), test_set)
             print('saved')
         regressor.delete_container(predictions, predictions_para, poses_para, pr_para, pi_para)
 

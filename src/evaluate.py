@@ -2,7 +2,7 @@ import _init_paths
 import argparse
 import numpy as np
 import glob
-from lib.utils import compute_add_score, compute_adds_score
+from lib.utils import compute_pose_error
 import pdb
 
 def parse_args():
@@ -51,17 +51,7 @@ if __name__ == '__main__':
     record = np.load(args.prediction_file, allow_pickle=True).item()
     pts3d = read_3d_points(args.object_name)
     diameter = read_diameter(args.object_name)
-    if args.object_name in ['eggbox', 'glue']:
-        compute_score = compute_adds_score
-    else:
-        compute_score = compute_add_score
-    score_init = compute_score(pts3d,
-                               diameter,
-                               (record['R_gt'], record['t_gt']),
-                               (record['R_init'], record['t_init']))
-    print('ADD(-S) score of initial prediction is: {}'.format(score_init))
-    score_pred = compute_score(pts3d,
-                               diameter,
-                               (record['R_gt'], record['t_gt']),
-                               (record['R_pred'], record['t_pred']))
-    print('ADD(-S) score of final prediction is: {}'.format(score_pred))
+    R_err, t_err = compute_pose_error(diameter,
+                                     (record['R_gt'], record['t_gt']),
+                                     (record['R_pred'], record['t_pred']))
+    print(args.object_name + 'prediction rotation error is: {} translation error is : {}'.format(R_err, t_err))

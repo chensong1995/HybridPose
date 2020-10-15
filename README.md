@@ -1,8 +1,7 @@
 # HybridPose: 6D Object Pose Estimation under Hybrid Representations
 This repository contains authors' implementation of [HybridPose: 6D Object Pose Estimation under Hybrid Representations](https://arxiv.org/abs/2001.01869). Our implementation is based on [PVNet](https://github.com/zju3dv/pvnet).
 We warmly welcome any discussions related to our implementation and our paper. Please feel free to open an issue.
-
-**News (June 11, 2020):** We have fixed a bug in Linemod dataset labeling as pointed out by [JISock](https://github.com/JISock) in [this issue](https://github.com/chensong1995/HybridPose/issues/3), and [shanniruo](https://github.com/shanniruo) in [this issue](https://github.com/chensong1995/HybridPose/issues/25). A small offset was incorrectly added to the translation vectors on Linemod dataset. Links to new labels and pre-trained weights are updated below. Our bug fix leads to marginal improvement of average ADD(-S) accuracy: from 0.9450447652 to 0.945402139. Thank you, JISock and shanniruo!
+**News (October 16, 2020):** We have updated our experiments using the conventional data split on Linemod/Occlusion Linemod. Following baseline works, we use around 15% of Linemod examples for training. The rest of Linemod examples, as well as the entire Occlusion Linemod dataset, are used for testing. Both this GitHub repository and the arXiv paper are updated. HybridPose achieves an ADD(-S) score of 0.9125577238 on Linemod, and 0.4754330537 on Occlusion Linemod. We sincerely appreciate the readers who pointed out this issue to us, including but not limited to [Shun Iwase](https://github.com/sh8) and [hiyyg](https://github.com/hiyyg).
 
 ## Introduction
 HybridPose consists of intermediate representation prediction networks and a pose regression module. The prediction networks take an image as input, and output predicted keypoints, edge vectors, and symmetry correspondences. The pose regression module consists of a initialization sub-module and a refinement sub-module. The initialization sub-module solves a linear system with predicted intermediate representations to obtain an initial pose. The refinement sub-module utilizes GM robust norm to obtain the final pose prediction.
@@ -44,11 +43,11 @@ python data/download_occlusion.py
 Let us then download our augumented labels to these two datasets. Our augumented labels include:
 * Keypoints: both 2D and 3D coordinates. These labels are generated using [FSP](https://github.com/zju3dv/pvnet/blob/master/lib/utils/data_utils.py).
 * Symmetry: Symmetry correspondences in 2D and the normal of symmetry plane in 3D. These labels are generated using [SymSeg](https://github.com/aecins/symseg).
-* Segmentation masks: On Linemod, we create segmentation masks by projecting 3D models. On Occlusion Linemod, we use the segmentation masks provided in [PVNet](https://github.com/zju3dv/pvnet).
+* Segmentation masks: On Linemod, we create segmentation masks by projecting 3D models.
 
 They are uploaded here:
-* Google Drive: [Linemod](https://drive.google.com/file/d/1wDdWq9hYoAhV6yb3ARD6_LwN4uDCYu0n/view?usp=sharing), [Occlusion Linemod](https://drive.google.com/file/d/1PItmDj7Go0OBnC1Lkvagz3RRB9qdJUIG/view?usp=sharing).
-* Tencent Weiyun: [Linemod](https://share.weiyun.com/VOf5yOZI), [Occlusion Linemod](https://share.weiyun.com/50i7KTb).
+* Google Drive: [Linemod](https://drive.google.com/file/d/1wDdWq9hYoAhV6yb3ARD6_LwN4uDCYu0n/view?usp=sharing).
+* Tencent Weiyun: [Linemod](https://share.weiyun.com/VOf5yOZI).
 
 The following commands unzip these labels to the correct directory:
 ```

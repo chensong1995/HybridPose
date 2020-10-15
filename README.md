@@ -1,6 +1,7 @@
 # HybridPose: 6D Object Pose Estimation under Hybrid Representations
 This repository contains authors' implementation of [HybridPose: 6D Object Pose Estimation under Hybrid Representations](https://arxiv.org/abs/2001.01869). Our implementation is based on [PVNet](https://github.com/zju3dv/pvnet).
 We warmly welcome any discussions related to our implementation and our paper. Please feel free to open an issue.
+
 **News (October 16, 2020):** We have updated our experiments using the conventional data split on Linemod/Occlusion Linemod. Following baseline works, we use around 15% of Linemod examples for training. The rest of Linemod examples, as well as the entire Occlusion Linemod dataset, are used for testing. Both this GitHub repository and the arXiv paper are updated. HybridPose achieves an ADD(-S) score of 0.9125577238 on Linemod, and 0.4754330537 on Occlusion Linemod. We sincerely appreciate the readers who pointed out this issue to us, including but not limited to [Shun Iwase](https://github.com/sh8) and [hiyyg](https://github.com/hiyyg).
 
 ## Introduction
@@ -46,8 +47,8 @@ Let us then download our augumented labels to these two datasets. Our augumented
 * Segmentation masks: On Linemod, we create segmentation masks by projecting 3D models.
 
 They are uploaded here:
-* Google Drive: [Linemod](https://drive.google.com/file/d/1wDdWq9hYoAhV6yb3ARD6_LwN4uDCYu0n/view?usp=sharing).
-* Tencent Weiyun: [Linemod](https://share.weiyun.com/VOf5yOZI).
+* Google Drive: [Linemod](https://drive.google.com/file/d/1wDdWq9hYoAhV6yb3ARD6_LwN4uDCYu0n/view?usp=sharing), [Occlusion Linemod](https://drive.google.com/file/d/1PItmDj7Go0OBnC1Lkvagz3RRB9qdJUIG/view?usp=sharing)..
+* Tencent Weiyun: [Linemod](https://share.weiyun.com/VOf5yOZI), [Occlusion Linemod](https://share.weiyun.com/50i7KTb)..
 
 The following commands unzip these labels to the correct directory:
 ```

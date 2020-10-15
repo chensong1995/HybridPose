@@ -35,9 +35,6 @@ def parse_args():
     parser.add_argument('--test_every', type=int, default=20)
     parser.add_argument('--save_every', type=int, default=20)
     parser.add_argument('--num_keypoints', type=int, default=8)
-    parser.add_argument('--use_keypoint', type=int, default=1, help='boolean flag indicating whether keypoints are used in pose regression')
-    parser.add_argument('--use_edge', type=int, default=1, help='boolean flag indicating whether edge are used in pose regression')
-    parser.add_argument('--use_symmetry', type=int, default=1, help='boolean flag indicating whether symmetry are used in pose regression')
     args = parser.parse_args()
     return args
 

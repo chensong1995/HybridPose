@@ -470,20 +470,13 @@ class CoreTrainer(object):
                                            mask_pred,
                                            normal_gt)
         # initialize pose
-        predictions = regressor.initialize_pose(predictions, 
-                                                pi_para, 
-                                                self.args.use_keypoint, 
-                                                self.args.use_edge, 
-                                                self.args.use_symmetry)
+        predictions = regressor.initialize_pose(predictions, pi_para)
         pose_init = np.zeros((4, 3), dtype=np.float32)
         regressor.get_pose(predictions, get_2d_ctypes(pose_init))
         R_init = pose_init[1:].transpose()
         t_init = pose_init[0].reshape((3, 1))
         # refine pose
-        predictions = regressor.refine_pose(predictions, pr_para,
-                                            self.args.use_keypoint, 
-                                            self.args.use_edge, 
-                                            self.args.use_symmetry)
+        predictions = regressor.refine_pose(predictions, pr_para)
         pose_final = np.zeros((4, 3), dtype=np.float32)
         regressor.get_pose(predictions, get_2d_ctypes(pose_final))
         R_final = pose_final[1:].transpose()

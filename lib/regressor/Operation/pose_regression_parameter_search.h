@@ -17,7 +17,7 @@ public:
     lambda_trans = 200;
     num_samples = 300;
     max_num_iterations = 100;
-    max_perturb = 0.25;
+    max_perturb = 0.7;
   }
   ~ParameterSearchConfig() {
   }
@@ -31,10 +31,11 @@ struct PRRefinePara {
   public:
    PRRefinePara() {
      beta_edge = 0.2;
-     beta_sym = 0.05;
-     alpha_kpts = 0.03;
-     alpha_edge = 0.03;
-     alpha_sym = 0.02;
+     beta_sym = 1e-3;
+     alpha_kpts = 1;
+     alpha_edge = 0.2;
+     alpha_sym = 1e-3;
+
    }
    ~PRRefinePara() {
    }
@@ -48,8 +49,8 @@ struct PRRefinePara {
 struct PRInitPara {
  public:
   PRInitPara() {
-    gamma_edge = 1;
-    gamma_sym = 0.1;
+    gamma_edge = 0.2;
+    gamma_sym = 1e-3;
 
   }
   ~PRInitPara() {

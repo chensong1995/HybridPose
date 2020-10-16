@@ -24,7 +24,6 @@ class OcclusionLinemodDataset(Dataset):
         self.alignment_flipping = np.matrix([[1., 0., 0.],
                                              [0., -1., 0.],
                                              [0., 0., -1.]], dtype=np.float32)
-
         self.base_dir = base_dir
         linemod_objects = ['ape', 'can', 'cat', 'driller',
                            'duck', 'eggbox', 'glue', 'holepuncher']
@@ -43,23 +42,76 @@ class OcclusionLinemodDataset(Dataset):
             self.lengths[object_name] = length
             self.total_length += length
         # pre-load data into memory
-        self.pts2d = {}
         self.pts3d = {}
         self.normals = {}
+        self.R_lo = {}
+        self.t_lo = {}
         for object_name in self.object_names:
+            # transformations
+            self.R_lo[object_name], self.t_lo[object_name] = \
+                    self.get_linemod_to_occlusion_transformation(object_name)
             # keypoints
-            pts2d_name = os.path.join(self.base_dir, 'my_labels', object_name, 'keypoints_2d.npy')
-            pts2d = np.float32(np.load(pts2d_name))
-            self.pts2d[object_name] = pts2d
-            pts3d_name = os.path.join(self.base_dir, 'my_labels', object_name, 'keypoints.npy')
+            pts3d_name = os.path.join('data/linemod', 'keypoints',
+                                      object_name, 'keypoints_3d.npy')
             pts3d = np.float32(np.load(pts3d_name))
             self.pts3d[object_name] = pts3d
             # symmetry plane normals
-            normal_name = os.path.join(self.base_dir, 'my_labels', object_name, 'symmetries.txt')
+            normal_name = os.path.join('data/linemod', 'symmetries',
+                                       object_name, 'symmetries.txt')
             self.normals[object_name] = self.read_normal(normal_name)
+        self.img_transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                 std=[0.229, 0.224, 0.225])
+            ])
 
     def __len__(self):
         return self.total_length
+
+    def get_linemod_to_occlusion_transformation(self, object_name):
+        # https://github.com/ClayFlannigan/icp
+        if object_name == 'ape':
+            R = np.array([[-4.5991463e-08, -1.0000000e+00,  1.1828890e-08],
+                          [ 8.5046146e-08, -4.4907327e-09, -1.0000000e+00],
+                          [ 1.0000000e+00, -2.7365417e-09,  9.5073148e-08]], dtype=np.float32)
+            t = np.array([ 0.00464956, -0.04454319, -0.00454451], dtype=np.float32)
+        elif object_name == 'can':
+            R = np.array([[ 1.5503679e-07, -1.0000000e+00,  2.0980373e-07],
+                          [ 2.6769550e-08, -2.0030792e-07, -1.0000000e+00],
+                          [ 1.0000000e+00,  1.5713613e-07,  2.8610597e-08]], dtype=np.float32)
+            t = np.array([-0.009928,   -0.08974387, -0.00697199], dtype=np.float32)
+        elif object_name == 'cat':
+            R = np.array([[-7.1956642e-08, -1.0000000e+00, -7.8242387e-08],
+                          [-9.9875002e-08,  6.7945813e-08, -1.0000000e+00],
+                          [ 1.0000000e+00, -6.8791721e-08, -1.0492791e-07]], dtype=np.float32)
+            t = np.array([-0.01460595, -0.05390565,  0.00600646], dtype=np.float32)
+        elif object_name == 'driller':
+            R = np.array([[-5.8952626e-08, -9.9999994e-01,  1.7797127e-07],
+                          [ 6.7603776e-09, -1.7821345e-07, -1.0000000e+00],
+                          [ 9.9999994e-01, -5.8378635e-08,  2.7301144e-08]], dtype=np.float32)
+            t = np.array([-0.00176942, -0.10016585,  0.00840302], dtype=np.float32)
+        elif object_name == 'duck':
+            R = np.array([[-3.4352450e-07, -1.0000000e+00,  4.5238485e-07],
+                          [-6.4654046e-08, -4.5092108e-07, -1.0000000e+00],
+                          [ 1.0000000e+00, -3.4280166e-07, -4.6047357e-09]], dtype=np.float32)
+            t = np.array([-0.00285449, -0.04044429,  0.00110274], dtype=np.float32)
+        elif object_name == 'eggbox':
+            R = np.array([[-0.02, -1.00, 0.00],
+                          [-0.02, -0.00, -1.00],
+                          [1.00, -0.02, -0.02]], dtype=np.float32)
+            t = np.array([-0.01, -0.03, -0.00], dtype=np.float32)
+        elif object_name == 'glue':
+            R = np.array([[-1.2898508e-07, -1.0000000e+00,  6.7859062e-08],
+                          [ 2.9789486e-08, -6.8855734e-08, -9.9999994e-01],
+                          [ 1.0000000e+00, -1.2711939e-07,  2.9696672e-08]], dtype=np.float32)
+            t = np.array([-0.00144855, -0.07744411, -0.00468425], dtype=np.float32)
+        elif object_name == 'holepuncher':
+            R = np.array([[-5.9812328e-07, -9.9999994e-01,  3.9026276e-07],
+                          [ 8.9670505e-07, -3.8723923e-07, -1.0000001e+00],
+                          [ 1.0000000e+00, -5.9914004e-07,  8.8171902e-07]], dtype=np.float32)
+            t = np.array([-0.00425799, -0.03734197,  0.00175619], dtype=np.float32)
+        t = t.reshape((3, 1))
+        return R, t
 
     def read_pose_and_img_id(self, filename, example_id):
         read_rotation = False
@@ -127,6 +179,46 @@ class OcclusionLinemodDataset(Dataset):
         graph = graph.reshape((num_edges * 2, self.img_shape[0], self.img_shape[1]))
         return graph
 
+    def read_3d_points_linemod(self, object_name):
+        filename = 'data/linemod/original_dataset/{}/mesh.ply'.format(object_name)
+        with open(filename) as f:
+            in_vertex_list = False
+            vertices = []
+            in_mm = False
+            for line in f:
+                if in_vertex_list:
+                    vertex = line.split()[:3]
+                    vertex = np.array([float(vertex[0]),
+                                       float(vertex[1]),
+                                       float(vertex[2])], dtype=np.float32)
+                    if in_mm:
+                        vertex = vertex / np.float32(10) # mm -> cm
+                    vertex = vertex / np.float32(100)
+                    vertices.append(vertex)
+                    if len(vertices) >= vertex_count:
+                        break
+                elif line.startswith('element vertex'):
+                    vertex_count = int(line.split()[-1])
+                elif line.startswith('end_header'):
+                    in_vertex_list = True
+                elif line.startswith('element face'):
+                    in_mm = True
+        return np.matrix(vertices)
+
+    def read_3d_points_occlusion(self, object_name):
+        import glob
+        filename = glob.glob('data/occlusion_linemod/models/{}/*.xyz'.format(object_name))[0]
+        with open(filename) as f:
+            vertices = []
+            for line in f:
+                vertex = line.split()[:3]
+                vertex = np.array([float(vertex[0]),
+                                   float(vertex[1]),
+                                   float(vertex[2])], dtype=np.float32)
+                vertices.append(vertex)
+        vertices = np.matrix(vertices)
+        return vertices
+
     def __getitem__(self, idx):
         local_idx = idx
         for object_name in self.object_names:
@@ -136,13 +228,20 @@ class OcclusionLinemodDataset(Dataset):
                 R, t, img_id = self.read_pose_and_img_id(pose_name, local_idx)
                 R = np.array(self.alignment_flipping * R, dtype=np.float32)
                 t = np.array(self.alignment_flipping * t, dtype=np.float32)
+                # apply linemod->occlusion alignment
+                t = np.matmul(R, self.t_lo[object_name]) + t
+                R = np.matmul(R, self.R_lo[object_name])
                 # image
                 image_name = os.path.join(self.base_dir, 'RGB-D', 'rgb_noseg', 'color_{:05d}.png'.format(img_id))
-                image = transforms.ToTensor()(PIL.Image.open(image_name).convert('RGB'))
+                image = self.img_transform(PIL.Image.open(image_name).convert('RGB'))
                 # keypoints
-                pts2d = self.pts2d[object_name][local_idx]
                 pts3d = self.pts3d[object_name]
-                # symmetry correspondences
+                pts2d = self.K * (np.matrix(R) * np.matrix(pts3d).transpose() + np.matrix(t))
+                pts2d = np.array(pts2d)
+                pts2d[0] /= pts2d[2]
+                pts2d[1] /= pts2d[2]
+                pts2d = pts2d[[0, 1]].transpose()
+                # symmetry correspondences (this is invalid. do not use)
                 sym_cor_name = os.path.join(self.base_dir, 'my_labels', object_name, 'cor', '{}.npy'.format(local_idx))
                 sym_cor = np.float32(np.load(sym_cor_name)).transpose([2, 0, 1])
                 normal = self.normals[object_name]
@@ -175,7 +274,8 @@ class OcclusionLinemodDataset(Dataset):
         raise ValueError('Invalid index: {}'.format(idx))
 
 if __name__ == '__main__':
-    ape_dataset = OcclusionLinemodDataset(object_name='ape', symmetric_keypoints=True)
-    ape_dataset[0]
-    pdb.set_trace()
-    all_dataset = OcclusionLinemodDataset(object_name='all', noise={'mean': 0., 'std': 3})
+    linemod_objects = ['ape', 'can', 'cat', 'driller',
+                       'duck', 'eggbox', 'glue', 'holepuncher']
+    for name in linemod_objects:
+        dataset = OcclusionLinemodDataset(object_name=name)
+        print(name, len(dataset))

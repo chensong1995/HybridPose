@@ -221,17 +221,14 @@ extern "C" {
 
 
   HybridPredictionContainer* initialize_pose(HybridPredictionContainer* predictions, 
-                                             PRInitPara* pi_para, 
-                                             int turn_on_kpt, 
-                                             int turn_on_edge, 
-                                             int turn_on_sym) {
+                                             PRInitPara* pi_para) { 
     AffineXform3d pose;
     PoseRegression pr;
     PoseRegressionPara para;
 
-    para.gamma_edge = pi_para->gamma_edge * turn_on_edge;
-    para.gamma_sym = pi_para->gamma_sym * turn_on_sym;
-    para.gamma_kpts = para.gamma_kpts * turn_on_kpt;
+    para.gamma_edge = pi_para->gamma_edge;
+    para.gamma_sym = pi_para->gamma_sym;
+    para.gamma_kpts = para.gamma_kpts;
 
     pr.InitializePose(*predictions, para, &pose);
 
@@ -245,17 +242,14 @@ extern "C" {
   }
 
   HybridPredictionContainer* refine_pose(HybridPredictionContainer* predictions,
-                                         PRRefinePara* pr_para,
-                                         int turn_on_kpt, 
-                                         int turn_on_edge, 
-                                         int turn_on_sym) {
+                                         PRRefinePara* pr_para) {
     AffineXform3d pose = *(predictions->GetRigidPose());;
     PoseRegression pr;
     PoseRegressionPara para;
 
-    para.beta_edge = pr_para->beta_edge * turn_on_edge;
-    para.beta_sym = pr_para->beta_sym * turn_on_sym;
-    para.beta_kpts = para.beta_kpts * turn_on_kpt;
+    para.beta_edge = pr_para->beta_edge;
+    para.beta_sym = pr_para->beta_sym;
+    para.beta_kpts = para.beta_kpts;
     para.alpha_kpts = pr_para->alpha_kpts;
     para.alpha_edge = pr_para->alpha_edge;
     para.alpha_sym = pr_para->alpha_sym;
@@ -297,7 +291,7 @@ extern "C" {
     
     // set pose initial for validation set using searched parameters
     for (unsigned id = 0; id < data_size; id++) {
-      initialize_pose(&((*predictions_para)[id]), pi_para, 1, 1, 1);
+      initialize_pose(&((*predictions_para)[id]), pi_para);
     }
     return pi_para;
   }
@@ -314,7 +308,7 @@ extern "C" {
   vector<HybridPredictionContainer>* new_container_para() {
     // a vector of intermediate predictions for N=20 examples in the val set
     vector<HybridPredictionContainer>* hpc_para = new vector<HybridPredictionContainer>();   
-    (*hpc_para).resize(20);    
+    (*hpc_para).resize(50);
 
     int start_id[] = {2, 3, 4, 5, 6, 7, 8, 3, 4, 5, 6, 7, 8, 4, 5, 6, 7, 8, 5, 6, 7, 8, 6, 7, 8, 7, 8, 8};
     int   end_id[] = {1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 6, 6, 7};        
@@ -333,7 +327,7 @@ extern "C" {
   vector<AffineXform3d>* new_container_pose() {    
     // a vector of ground-truth poses for N=20 exmaples in the val set
     vector<AffineXform3d>* poses = new vector<AffineXform3d>();   
-    (*poses).resize(20);
+    (*poses).resize(50);
     return poses;
   }
 

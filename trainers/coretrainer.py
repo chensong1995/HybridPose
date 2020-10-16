@@ -416,17 +416,14 @@ class CoreTrainer(object):
             xs = graph_pred[i, 0][mask_pred == 1.]
             ys = graph_pred[i, 1][mask_pred == 1.]
             vec_pred[i] = [xs.mean(), ys.mean()]
-            if self.args.dataset == 'linemod':
+            try:
                 cov = np.cov(xs, ys)
                 cov = (cov + cov.transpose()) / 2 # ensure the covariance matrix is symmetric
                 v, u = np.linalg.eig(cov)
                 v = np.matrix(np.diag(1. / np.sqrt(v)))
                 edge_inv_half_var[i] = u * v * u.transpose()
-            elif self.args.dataset == 'occlusion_linemod':
+            except:
                 edge_inv_half_var[i] = np.eye(2)
-            else:
-                # dataset not supported
-                pdb.set_trace()
         vec_pred = np.array(K_inv[:2, :2] * np.matrix(vec_pred).transpose()).transpose()
         edge_inv_half_var = edge_inv_half_var.reshape((n_edges, 4))
         regressor.set_vec_pred(predictions,
@@ -473,20 +470,13 @@ class CoreTrainer(object):
                                            mask_pred,
                                            normal_gt)
         # initialize pose
-        predictions = regressor.initialize_pose(predictions, 
-                                                pi_para, 
-                                                self.args.use_keypoint, 
-                                                self.args.use_edge, 
-                                                self.args.use_symmetry)
+        predictions = regressor.initialize_pose(predictions, pi_para)
         pose_init = np.zeros((4, 3), dtype=np.float32)
         regressor.get_pose(predictions, get_2d_ctypes(pose_init))
         R_init = pose_init[1:].transpose()
         t_init = pose_init[0].reshape((3, 1))
         # refine pose
-        predictions = regressor.refine_pose(predictions, pr_para,
-                                            self.args.use_keypoint, 
-                                            self.args.use_edge, 
-                                            self.args.use_symmetry)
+        predictions = regressor.refine_pose(predictions, pr_para)
         pose_final = np.zeros((4, 3), dtype=np.float32)
         regressor.get_pose(predictions, get_2d_ctypes(pose_final))
         R_final = pose_final[1:].transpose()
@@ -527,10 +517,10 @@ class CoreTrainer(object):
         pr_para = regressor.search_pose_refine(predictions_para, poses_para, para_id, diameter)
         return pr_para, pi_para
 
-    def generate_data(self, val_size=20):
+    def generate_data(self, val_loader, val_size=50):
         self.model.eval()
-        camera_intrinsic = self.test_loader.dataset.dataset.camera_intrinsic
-        n_examples = len(self.test_loader.dataset) - val_size
+        camera_intrinsic = self.test_loader.dataset.camera_intrinsic
+        n_examples = len(self.test_loader.dataset)
         test_set = {
                 'object_name': [],
                 'local_idx': [],
@@ -563,7 +553,11 @@ class CoreTrainer(object):
         # ground-truth poses in the val set
         poses_para = regressor.new_container_pose()
         with torch.no_grad():
-            for i_batch, batch in enumerate(self.test_loader):
+            # search parameters
+            keep_searching = True
+            for i_batch, batch in enumerate(val_loader):
+                if not keep_searching:
+                    break
                 base_idx = self.args.batch_size * i_batch
                 if cuda:
                     batch['image'] = batch['image'].cuda()
@@ -591,8 +585,6 @@ class CoreTrainer(object):
                         val_set['mask_pred'].append(mask_pred[i][0]) 
                         val_set['R_gt'].append(R[i])
                         val_set['t_gt'].append(t[i])
-                        # skip pose regression: first `val_size` examples are in the val set
-                        continue
                     elif (base_idx + i) == val_size:
                         # search hyper-parameters of both initialization and refinement sub-modules
                         pr_para, pi_para = self.search_para(regressor,
@@ -602,12 +594,32 @@ class CoreTrainer(object):
                                                             batch['normal'][i].numpy(),
                                                             read_diameter(self.args.object_name),
                                                             val_set)
+                        keep_searching = False
+                        break
+            # prediction
+            for i_batch, batch in enumerate(self.test_loader):
+                base_idx = self.args.batch_size * i_batch
+                if cuda:
+                    batch['image'] = batch['image'].cuda()
+                    batch['sym_cor'] = batch['sym_cor'].cuda()
+                    batch['mask'] = batch['mask'].cuda()
+                    batch['pts2d_map'] = batch['pts2d_map'].cuda()
+                    batch['graph'] = batch['graph'].cuda()
+                sym_cor_pred, mask_pred, pts2d_map_pred, graph_pred, sym_cor_loss, mask_loss, pts2d_loss, graph_loss = \
+                        self.model(batch['image'], batch['sym_cor'], batch['mask'], batch['pts2d_map'], batch['graph'])
+                mask_pred[mask_pred > 0.5] = 1.
+                mask_pred[mask_pred <= 0.5] = 0.
+                pts2d_pred_loc, pts2d_pred_var = self.vote_keypoints(pts2d_map_pred, mask_pred)
+                mask_pred = mask_pred.detach().cpu().numpy()
+                for i in range(batch['image'].shape[0]):
+                    R = batch['R'].numpy()
+                    t = batch['t'].numpy()
                     # regress pose: test set starts from the `val_size`^{th} example
                     # save ground-truth information
                     test_set['object_name'] += batch['object_name'][i:]
                     test_set['local_idx'] += batch['local_idx'].numpy()[i:].tolist()
-                    test_set['R_gt'][base_idx + i - val_size] = R[i]
-                    test_set['t_gt'][base_idx + i - val_size] = t[i]
+                    test_set['R_gt'][base_idx + i] = R[i]
+                    test_set['t_gt'][base_idx + i] = t[i]
                     # save predicted information
                     R_pred, t_pred, R_init, t_init = self.regress_pose(regressor,
                                                                        predictions,
@@ -621,10 +633,10 @@ class CoreTrainer(object):
                                                                        sym_cor_pred[i].detach().cpu().numpy(),
                                                                        mask_pred[i][0],
                                                                        batch['normal'][i].numpy())
-                    test_set['R_pred'][base_idx + i - val_size] = R_pred
-                    test_set['t_pred'][base_idx + i - val_size] = t_pred
-                    test_set['R_init'][base_idx + i - val_size] = R_init
-                    test_set['t_init'][base_idx + i - val_size] = t_init
+                    test_set['R_pred'][base_idx + i] = R_pred
+                    test_set['t_pred'][base_idx + i] = t_pred
+                    test_set['R_init'][base_idx + i] = R_init
+                    test_set['t_init'][base_idx + i] = t_init
             os.makedirs('output/{}'.format(self.args.dataset), exist_ok=True)
             np.save('output/{}/test_set_{}.npy'.format(self.args.dataset, self.args.object_name), test_set)
             print('saved')

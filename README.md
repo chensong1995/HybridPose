@@ -66,13 +66,39 @@ data
   |         |---------- cam
   |         |---------- ... (other objects)
   |-- fuse_linemod
-  |         |---------- ape
-  |         |---------- benchviseblue
-  |         |---------- cam
-  |         |---------- ... (other objects)
+  |         |---------- fuse
+  |         |            |---------- 0_info.pkl
+  |         |            |---------- 0_mask.png
+  |         |            |---------- 0_rgb.jpg
+  |         |            |---------- 1_info.pkl
+  |         |            |---------- 1_mask.png
+  |         |            |---------- 1_rgb.jpg
+  |         |            |---------- ... (other examples)
 ```
 
 After that, please use `data/label.py` and `data/label_fuse.py` to create intermediate representation labels blender and fuse data, respectively.
+
+One of the arguments taken by the labeling scripts is `--pvnet_linemod_path`. This is the data directory used by PVNet render. The structure of this directory looks like this:
+
+```
+pvnet_lindmod
+ |-- ape
+ |    |--- amodal_mask
+ |    |--- contours
+ |    |--- JPEGImages
+ |    |--- labels
+ |    |--- labels_occlusion
+ |    |--- mask
+ |    |--- nosiy_contours
+ |    |--- pose
+ |    |--- ape.ply
+ |    |--- ... (several other .txt and .pkl files)
+ |-- benchviseblue
+ |    |--- ...
+ |-- cam
+ |    |--- ...
+ |-- ... (other objects)
+```
 
 ## Training
 Please set the arguments in src/train\_core.py execute the following command (note that we need to set LD\_LIBRARY\_PATH for the pose regressor):

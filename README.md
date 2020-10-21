@@ -78,6 +78,18 @@ data
 
 After that, please use `data/label.py` and `data/label_fuse.py` to create intermediate representation labels blender and fuse data, respectively.
 
+```
+mv data/label.py data/blender_linemod/label.py
+cd data/blender_linemod
+python label.py
+```
+
+```
+mv data/label_fuse.py data/fuse_linemod/label_fuse.py
+cd data/fuse_linemod
+python label_fuse.py
+```
+
 One of the arguments taken by the labeling scripts is `--pvnet_linemod_path`. This is the data directory used by PVNet render. The structure of this directory looks like this:
 
 ```

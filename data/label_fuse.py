@@ -206,6 +206,5 @@ def main(args):
 
 if __name__ == '__main__':
     args = parse_args()
-    for name in ['benchviseblue', 'lamp']:
-        args.object_name = name
-        main(args)
+    args.object_name = name
+    main(args)

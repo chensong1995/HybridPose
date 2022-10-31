@@ -47,8 +47,8 @@ Let us then download our augumented labels to these two datasets. Our augumented
 * Segmentation masks: On Linemod, we create segmentation masks by projecting 3D models.
 
 They are uploaded here:
-* Google Drive: [Linemod](https://drive.google.com/file/d/1wDdWq9hYoAhV6yb3ARD6_LwN4uDCYu0n/view?usp=sharing), [Occlusion Linemod](https://drive.google.com/file/d/1PItmDj7Go0OBnC1Lkvagz3RRB9qdJUIG/view?usp=sharing)..
-* Tencent Weiyun: [Linemod](https://share.weiyun.com/VOf5yOZI), [Occlusion Linemod](https://share.weiyun.com/50i7KTb)..
+* OneDrive: [Linemod](https://utexas-my.sharepoint.com/:u:/g/personal/song_austin_utexas_edu/EX1-jCyvyw9DoNGDGRY6RXsBTYV0g0n-4YZjGc4F_9xTRA?e=qmV7bb), [Occlusion Linemod](https://utexas-my.sharepoint.com/:u:/g/personal/song_austin_utexas_edu/EaHVyE8WaVFJh5tdtJIPxXgBo1iCIFeCXJHdFQxXT3NxyA?e=yNdWKe).
+* Tencent Weiyun: [Linemod](https://share.weiyun.com/VOf5yOZI), [Occlusion Linemod](https://share.weiyun.com/50i7KTb).
 
 The following commands unzip these labels to the correct directory:
 ```
@@ -124,19 +124,19 @@ If you use a different shell other than bash and fish, prepend "lib/regressor" t
 
 ## Pre-trained weights
 You can download our pre-trained weights below. We use train one set of weights on Linemod, and test on both Linemod and Occlusion Linemod:
-* Google Drive: [ape](https://drive.google.com/file/d/1i9u20zcZvzxH3zp1x5b_p3r7CIRZjPtY/view?usp=sharing),
-[benchviseblue](https://drive.google.com/file/d/1JBK-kigQEmYVW4xBZPlvgKFc4018YHDN/view?usp=sharing),
-[cam](https://drive.google.com/file/d/1W8DGT4oBR4O7TV7CLoKJPef3GQslb37R/view?usp=sharing),
-[can](https://drive.google.com/file/d/1KaNrV0REV7ErqPkMX8tqkojEKe7IUNLb/view?usp=sharing),
-[cat](https://drive.google.com/file/d/1F77YzL4-FpWAPJJIVnkpyRrtO8uDNVq5/view?usp=sharing),
-[driller](https://drive.google.com/file/d/1BARke8MZf7GvQpa7YQnBpI4_0je8hmy8/view?usp=sharing),
-[duck](https://drive.google.com/file/d/1XeOqyY7WWxUK79GRB8bp4EkoIO1lvjlF/view?usp=sharing),
-[eggbox](https://drive.google.com/file/d/1nQZYc1pnV9HeR2-p-RBTUz_KV8QA8Y9B/view?usp=sharing),
-[glue](https://drive.google.com/file/d/1bBJ5M0pMQfzZ-r9gH_wa9XGvf7fidYlz/view?usp=sharing),
-[holepuncher](https://drive.google.com/file/d/1YEL_2FsxLgUKTNbvoRCiwitLPQoVATnx/view?usp=sharing),
-[iron](https://drive.google.com/file/d/1T_cKOKNdwMz8ex8TtQHZxmf8SmFgKSr4/view?usp=sharing),
-[lamp](https://drive.google.com/file/d/1c2uiQ2kIW2zCNyswmNB7DbKtWF9pp4PS/view?usp=sharing),
-[phone](https://drive.google.com/file/d/15DCtOMxIlYU3gYJ5pFfGhwh-VNsMmw_x/view?usp=sharing)
+* OneDrive: [ape](https://utexas-my.sharepoint.com/:u:/g/personal/song_austin_utexas_edu/Ec9RFKrnmi5Gp6mpG0rzemcBTf_UG8L-Jys3T9fqOQ1r2Q?e=1StQkC),
+[benchviseblue](https://utexas-my.sharepoint.com/:u:/g/personal/song_austin_utexas_edu/EThQc5k0ToVIpXzTl2dSsy8BLgpgQj4Hr7Z9-heJCUAGNg?e=OGviAL),
+[cam](https://utexas-my.sharepoint.com/:u:/g/personal/song_austin_utexas_edu/EXzddKdkvJpBt-asNlfRJssBD08guI7IAmKAT00DghGt9A?e=5UgEG6),
+[can](https://utexas-my.sharepoint.com/:u:/g/personal/song_austin_utexas_edu/ERrsKeRlwehPjpl4RTV2muUB7AnrRtYl5mqmUYO61NdAkg?e=DVYzoO),
+[cat](https://utexas-my.sharepoint.com/:u:/g/personal/song_austin_utexas_edu/EbsJ9ij5JthPj9Il7Ms3C_gBYoaJDSS8jVEXJnikLde7nA?e=KcQ5g4),
+[driller](https://utexas-my.sharepoint.com/:u:/g/personal/song_austin_utexas_edu/EVi5qRlJV-1Fn2mQlR-GVwABZ1_JHD0pOIA3YBu6DQ-kdg?e=6fGsAY),
+[duck](https://utexas-my.sharepoint.com/:u:/g/personal/song_austin_utexas_edu/EbpYzIDL8UtMkqWwY8RSaC8B8-hfTrkWxtQoRWt--GCaWw?e=QFDUSo),
+[eggbox](https://utexas-my.sharepoint.com/:u:/g/personal/song_austin_utexas_edu/ERGay7Ell5NMnmgSGWTU0WUBBPJLU8gU3V0y2tU9CNZ1Ag?e=EOAuYJ),
+[glue](https://utexas-my.sharepoint.com/:u:/g/personal/song_austin_utexas_edu/EUWc7032Kl9MtvynSeEnPeoB4gt4iqmyUj2dwBhO0KZIWQ?e=wVynHT),
+[holepuncher](https://utexas-my.sharepoint.com/:u:/g/personal/song_austin_utexas_edu/Eev3foHkKpdKveetchoNjE0BVdOoJ4Zs7rCfl_Ea8nkvrA?e=7TTlsC),
+[iron](https://utexas-my.sharepoint.com/:u:/g/personal/song_austin_utexas_edu/EX6xS32n2oNHsCW49-q7uJ0B9lYd9FdHe6kx6DexY4LMoQ?e=S64eDF),
+[lamp](https://utexas-my.sharepoint.com/:u:/g/personal/song_austin_utexas_edu/EY5wJyvD4AFPqzbYUOTfgXgBb_z9qiigypgSLcRvJpDvBg?e=g9PJdf),
+[phone](https://utexas-my.sharepoint.com/:u:/g/personal/song_austin_utexas_edu/EdKEv70zs8JGuwaJfRYKwrYBhr_bG4Ig0PJCf2oZmNoJ_Q?e=q9oZhL)
 * Tencent Weiyun: [ape](https://share.weiyun.com/yOCM20YC),
 [benchviseblue](https://share.weiyun.com/iNCkC7iN),
 [cam](https://share.weiyun.com/4jE1JxQK),
